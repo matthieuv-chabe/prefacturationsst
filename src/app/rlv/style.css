@@ -1,0 +1,32 @@
+@media screen {
+    table, th, td {
+        border: 1px solid rgba(0, 0, 0, 0.27);
+        border-collapse: collapse;
+    }
+
+    table {
+        border-bottom: none;
+    }
+
+    td {
+        padding: 5px;
+    }
+
+    #pdfready {
+        background-image: url(https://www.chabe.fr/wp-content/uploads/2020/05/fond_actu_bleu_2.png) !important;
+    }
+}
+
+@media print {
+    #pdfready {
+        background-image: none !important;
+    }
+
+    .noprint {
+        display: none !important;
+    }
+
+    * {
+        overflow: hidden;
+    }
+}

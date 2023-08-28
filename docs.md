@@ -1,0 +1,2 @@
+required apis
+/get_all_main_hotel_accounts
