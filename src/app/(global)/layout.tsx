@@ -16,7 +16,7 @@ const msalConfig = {
 	auth: {
 		clientId: '97480561-e4b7-4616-adf6-c3eb9c6e75ed',
 		authority: 'https://login.microsoftonline.com/bcbedbf1-982a-4634-b8fd-7361216ff810',
-		redirectUri: (typeof (window) != "undefined" && window.location.href.indexOf("localhost") != -1) ? "http://localhost:3000/" : 'https://commissions.chabe.com/',
+		redirectUri: (typeof (window) != "undefined" && window.location.href.indexOf("localhost") != -1) ? "http://localhost:3000/" : 'https://prefacturationsst.vercel.app',
 	}
 };
 
