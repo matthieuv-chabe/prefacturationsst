@@ -70,7 +70,7 @@ class CSalesforce {
             headers: myHeaders,
             body: urlencoded,
             //   redirect: 'follow'
-            cache: 'no-cache',
+            // cache: 'no-cache',
         };
 
         const r = await fetch(`${env.SF_LOGIN_URL}/services/oauth2/token`, requestOptions)
@@ -86,7 +86,7 @@ class CSalesforce {
 
     private async _internal_call(full_url: string, type:string = "POST", body: any = {}) {
         revalidatePath(full_url);
-        revalidateTag("salesforce")
+        //revalidateTag("salesforce")
         let result = await fetch(full_url, {
             method: type,
             headers: {
@@ -94,9 +94,9 @@ class CSalesforce {
                 "Content-Type": 'application/json',
             },
             body: type != "GET" ? JSON.stringify(body) : undefined,
-            cache: "no-cache",
+            //cache: "no-cache",
             next: {
-                revalidate: 0,
+                //revalidate: 0,
                 tags: ["salesforce"]
             }
         }).then(async response => {

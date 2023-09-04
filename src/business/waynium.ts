@@ -161,3 +161,66 @@ export const WAYNIUM_servicetype_id_to_string = (id: string): string => {
 
     return "UNKNOWN";
 }
+
+/*
+{
+
+        CODE_0_DEVIS_EN_COURS: 1,
+
+        CODE_1_TARIF_SOUS_TRAITANT: 17,
+
+        CODE_2_ACCEPTATION_SOUS_TRAITANT: 15,
+
+        CODE_3_DEVIS_ENVOYE: 2,
+
+        CODE_4_EN_ATTENTE_ATTRIBUTION: 14,
+
+        CODE_5_ENVOYE_AU_CHAUFFEUR: 16,
+
+        CODE_6_CHAUFFEUR_OK: 4,
+
+        CODE_7_MISSION_DEMARREE: 11,
+
+        CODE_8_EN_PLACE_POB: 8,
+
+        CODE_9_MISSION_TERMINEE: 9,
+
+        CODE_S_TRAITEMENT_RETOUR: 19,
+
+        CODE_V_VERIFICATION: 13,
+
+        CODE_F_FACTURABLE: 21,
+
+        CODE_G_FACTURE_GENEREE: 22,
+
+        CODE_E_ANNULEE: 7,
+
+    }
+ */
+
+const _WAYNIUM_statut_id_to_string = {
+    "1": "DEVIS EN COURS",
+    "17": "TARIF SOUS TRAITANT",
+    "15": "ACCEPTATION SOUS TRAITANT",
+    "2": "DEVIS ENVOYE",
+    "14": "EN ATTENTE ATTRIBUTION",
+    "16": "ENVOYE AU CHAUFFEUR",
+    "4": "CHAUFFEUR OK",
+    "11": "MISSION DEMARREE",
+    "8": "EN PLACE POB",
+    "9": "MISSION TERMINEE",
+    "19": "TRAITEMENT RETOUR",
+    "13": "VERIFICATION",
+    "21": "FACTURABLE",
+    "22": "FACTURE GENEREE",
+    "7": "ANNULEE",
+}
+
+export const WAYNIUM_statut_id_to_string = (id: string): string => {
+    if (id in _WAYNIUM_statut_id_to_string) {
+        // @ts-ignore
+        return _WAYNIUM_statut_id_to_string[id];
+    }
+
+    return "UNKNOWN";
+}

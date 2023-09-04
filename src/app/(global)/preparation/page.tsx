@@ -1,13 +1,65 @@
 "use client";
 
-import {Button, Checkbox, DatePicker, Divider, message, Table, TableColumnProps, Typography} from 'antd';
-import React, {useState} from "react";
+import {Button, Checkbox, DatePicker, Divider, Input, message, Table, TableColumnProps, Typography} from 'antd';
+import React, {useState, useEffect} from "react";
 import {useAntdTable} from 'ahooks';
 import {ColumnsType} from "antd/es/table";
 import dayjs, {Dayjs} from "dayjs";
-import {CheckboxValueType} from "antd/es/checkbox/Group";
+import {CheckboxOptionType, CheckboxValueType} from "antd/es/checkbox/Group";
 import {CheckboxChangeEvent} from "antd/es/checkbox";
-import {WAYNIUM_servicetype_id_to_string, WAYNIUM_vehiculetype_id_to_string} from "@/business/waynium";
+import {
+	WAYNIUM_servicetype_id_to_string,
+	WAYNIUM_statut_id_to_string,
+	WAYNIUM_vehiculetype_id_to_string
+} from "@/business/waynium";
+
+type SetValue<T> = (newValue: T | ((prevValue: T) => T)) => void;
+
+function useURLState<T>(
+	paramName: string,
+	initialValue: T
+): [T, SetValue<T>] {
+	const getInitialValueFromURL = (): T | null => {
+		const searchParams = new URLSearchParams(window.location.search);
+		const valueFromURL = searchParams.get(paramName);
+		if (valueFromURL !== null) {
+			try {
+				return JSON.parse(valueFromURL) as T;
+			} catch (error) {
+				console.error('Error parsing URL parameter:', error);
+			}
+		}
+		return null;
+	};
+
+	const [value, setValue] = useState<T>(
+		getInitialValueFromURL() ?? initialValue
+	);
+
+	useEffect(() => {
+		const serializedValue = JSON.stringify(value);
+		const searchParams = new URLSearchParams(window.location.search);
+		searchParams.set(paramName, serializedValue);
+
+		const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
+		window.history.replaceState({ path: newUrl }, '', newUrl);
+
+		const handlePopstate = (event: PopStateEvent) => {
+			const updatedValueFromURL = getInitialValueFromURL();
+			if (updatedValueFromURL !== null) {
+				setValue(updatedValueFromURL);
+			}
+		};
+
+		window.addEventListener('popstate', handlePopstate);
+
+		return () => {
+			window.removeEventListener('popstate', handlePopstate);
+		};
+	}, [value, paramName]);
+
+	return [value, setValue];
+}
 
 export type DataType = {
 	date_start: string,
@@ -53,39 +105,80 @@ export default function X () {
 
 	const [allClients, setAllClients] = useState<{ text:string, value:string }[]>([]);
 	const [allServices, setAllServices] = useState<{ text:string, value:string }[]>([]);
+	const [allPartners, setAllPartners] = useState<{ text:string, value:string }[]>([]);
 
 	// Date interval
-	const [interval_from, setInterval_from] = useState<string>("2023-01-01");
-	const [interval_to, setInterval_to] = useState<string>("2023-01-01");
+	const [interval_from, setInterval_from] = useURLState<string>("if", "2023-01-01");
+	const [interval_to, setInterval_to] = useURLState<string>("it", "2023-01-01");
 
 	const getTableData = async (x: { current: number, pageSize: number, sorter:any, filters:any }) => {
-		const query = `page=${x.current}&pageSize=${x.pageSize}`;
+
+		const array_to_string = (arr: string[] | undefined) => {
+
+			if(arr == null) return "";
+
+			return arr.map((x) => {
+				return `${x}`;
+			}).join(",");
+		}
+
+		const queryx = `
+			&limit=${x.pageSize}
+			&offset=${(x.current - 1) * x.pageSize}
+			
+			${x.filters?.folder_id?.length > 0 ? `&folder_id=${array_to_string(x.filters?.folder_id)}` : ""}
+			${x.filters?.vehicle_type?.length > 0 ? `&vehicle_types=${array_to_string(x.filters?.vehicle_type)}` : ""}
+			${x.filters?.service_type?.length > 0 ? `&service_types=${array_to_string(x.filters?.service_type)}` : ""}
+			${x.filters?.client?.length > 0 ? `&clients=${array_to_string(x.filters?.client)}` : ""}
+			${x.filters?.partner_id?.length > 0 ? `&partners=${array_to_string(x.filters?.partner_id)}` : ""}
+			`;
+
+		const query = `
+			&limit=${x.pageSize}
+			&offset=${(x.current - 1) * x.pageSize}
+			&filters=${JSON.stringify(x.filters)}
+			&sorter=${JSON.stringify(x.sorter)}
+		`;
+
+
 
 		return fetch(`/api/missions?date_start=${interval_from}&date_end=${interval_to}&${query}`)
 			.then((res) => res.json())
-			.then((res) => {
-
-				let all_clients = new Set<string>();
-				res.forEach((x: any) => {all_clients.add(x.client_name);});
-				setAllClients(
-					Array.from(all_clients).map((x: string) => {
-						return {text: x, value: x}
-					})
-				);
-
-				let all_services = new Set<string>();
-				res.forEach((x: any) => {if(x != null) all_services.add(x.service_type);});
-				setAllServices(
-					Array.from(all_services).map((x: string) => {
-						return {text: x, value: x}
-					})
-				);
+			.then((res: {count: number, jobs: DataType[]}) => {
 
 				console.log({res})
 
+				let all_clients = new Set<string>();
+				res.jobs.forEach((x: any) => {all_clients.add(x.client);});
+				setAllClients(
+					Array.from(all_clients).map((x: string) => {
+						return {text: x, value: x}
+					}).sort((a, b) => a.text.localeCompare(b.text))
+				);
+
+				let all_services = new Set<string>();
+				res.jobs.forEach((x: any) => { if(x != null) all_services.add(x.service_type);});
+				setAllServices(
+					Array.from(all_services).map((x: string) => {
+						return {text: WAYNIUM_servicetype_id_to_string(x), value: x}
+					})
+						.filter((x) => x.text != null && x.text.length > 0 && x.value != null && x.value.length > 0)
+						.sort((a, b) => a.text.localeCompare(b.text))
+				);
+
+				let all_partners = new Set<string>();
+				res.jobs.forEach((x: any) => {all_partners.add(x.partner_id);});
+				setAllPartners(
+					Array.from(all_partners).map((x: string) => {
+						return {text: x.split('|')[1], value: x.split('|')[0]}
+					}).sort((a, b) => a.text.localeCompare(b.text))
+				);
+
+				console.log({all_clients, all_services, all_partners})
+
 				return {
-					total: res.length,
-					list: res,
+					total: res.count,
+					list: res.jobs,
 				}
 			});
 	}
@@ -112,31 +205,55 @@ export default function X () {
 
 	const CheckboxGroup = Checkbox.Group;
 
-	const FilterDropdownCheckboxes = (props: { choices: any[], setSelectedKeys: (keys: string[]) => void, confirm: () => void }) => {
+	const FilterDropdownCheckboxes = (props: { choices: any[], type: string, setSelectedKeys: (keys: string[]) => void, confirm: () => void }) => {
 
 		const [checkedList, setCheckedList] = useState<CheckboxValueType[]>([]);
 		const checkAll = props.choices.length === checkedList.length;
 		const indeterminate = checkedList.length > 0 && checkedList.length < props.choices.length;
 
 		const onCheckAllChange = (e: CheckboxChangeEvent) => {
-			setCheckedList(e.target.checked ? props.choices.map(e => e.text) : []);
+			setCheckedList(e.target.checked ? props.choices.map(e => e.value) : []);
 		};
+
+		const [search, setSearch] = useState<string>("");
 
 		return (<>
 			<div style={{margin: 10}}>
 				<Title level={3}>
-					Liste des clients
+					Liste des {props.type}
 				</Title>
-				{JSON.stringify(props.choices)}
 				<div style={{margin: "5px", padding: 10, maxHeight: 400, overflowY: "auto"}}>
-					<Checkbox indeterminate={indeterminate} onChange={onCheckAllChange} checked={checkAll}>
-						Voir tous les clients
-					</Checkbox>
+
+					<Input.Search
+						placeholder="Rechercher"
+						allowClear
+						onChange={(e) => {
+							setSearch(e.target.value);
+						}}
+					></Input.Search>
 					<Divider />
+					{search.length == 0 &&
+					<>
+						<Checkbox
+							indeterminate={indeterminate}
+							onChange={onCheckAllChange}
+							checked={checkAll}
+						>
+							Selectionner tous les {props.type}
+						</Checkbox>
+						<Divider />
+					</>
+					}
 					<CheckboxGroup
 						style={{display: "flex", flexDirection: "column"}}
 						value={checkedList}
-						options={props.choices.map(e => e.text)}
+						options={props.choices.map(e => {
+							return {
+								value: e.value,
+								label: e.text,
+								style: {display: search.length > 0 && !e.text.toLowerCase().includes(search.toLowerCase()) ? "none" : ""}
+							} as CheckboxOptionType
+						})}
 						onChange={(checkedValues) => {
 							setCheckedList(checkedValues);
 							props.setSelectedKeys(checkedValues.map(x => x as string));
@@ -215,6 +332,7 @@ export default function X () {
 			render: (t) => <>{WAYNIUM_servicetype_id_to_string(t)}</>,
 			filterDropdown: (props) => <FilterDropdownCheckboxes
 				choices={allServices}
+				type={"services"}
 				setSelectedKeys={props.setSelectedKeys}
 				confirm={props.confirm}
 			/>
@@ -222,15 +340,28 @@ export default function X () {
 		{
 			title: 'Client',
 			dataIndex: 'client',
+			filterDropdown: (props) => <FilterDropdownCheckboxes
+				choices={allClients}
+				type={"clients"}
+				setSelectedKeys={props.setSelectedKeys}
+				confirm={props.confirm}
+			/>
 		},
 		{
 			title: 'Partenaire',
 			dataIndex: 'partner_id',
 			render: (t) => {
+
+				const [partner_id, partner_name] = t.split('|');
+
+				if(partner_id == "null") {
+					return <Text type={"danger"}>Aucun !</Text>
+				}
 				return <>{t.split('|')[1]}</>
 			},
 			filterDropdown: (props) => <FilterDropdownCheckboxes
-				choices={allClients}
+				choices={allPartners}
+				type={"partenaires"}
 				setSelectedKeys={props.setSelectedKeys}
 				confirm={props.confirm}
 			/>
@@ -252,6 +383,9 @@ export default function X () {
 		{
 			title: 'Prix d\'achat',
 			dataIndex: 'buying_price',
+			sorter: (a, b) => {
+				return parseFloat(a.buying_price) - parseFloat(b.buying_price);
+			}
 		},
 		{
 			title: 'Prix de vente',
@@ -264,6 +398,9 @@ export default function X () {
 		{
 			title: 'Statut',
 			dataIndex: 'status',
+			render: (t) => {
+				return <>{WAYNIUM_statut_id_to_string(t)}</>
+			}
 		},
 		{
 			title: 'Envoyé au fournisseur',
