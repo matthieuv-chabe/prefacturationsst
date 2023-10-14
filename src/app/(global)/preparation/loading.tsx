@@ -2,7 +2,7 @@
 export default function Loading() {
 	return (
 		<>
-			Chargement de la liste des hôtels...
+			En attente des données de Salesforce...
 		</>
 	)
 }

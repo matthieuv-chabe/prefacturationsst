@@ -1,17 +1,23 @@
 "use client";
 
-import {Button, Checkbox, DatePicker, Divider, Input, message, Table, TableColumnProps, Typography} from 'antd';
-import React, {useState, useEffect} from "react";
-import {useAntdTable} from 'ahooks';
-import {ColumnsType} from "antd/es/table";
-import dayjs, {Dayjs} from "dayjs";
-import {CheckboxOptionType, CheckboxValueType} from "antd/es/checkbox/Group";
-import {CheckboxChangeEvent} from "antd/es/checkbox";
+import { Button, Checkbox, DatePicker, Divider, Input, message, Table, TableColumnProps, Typography } from 'antd';
+import React, { useState, useEffect } from "react";
+import { useAntdTable } from 'ahooks';
+import { ColumnsType } from "antd/es/table";
+import dayjs, { Dayjs } from "dayjs";
+import { CheckboxOptionType, CheckboxValueType } from "antd/es/checkbox/Group";
+import { CheckboxChangeEvent } from "antd/es/checkbox";
 import {
 	WAYNIUM_servicetype_id_to_string,
 	WAYNIUM_statut_id_to_string,
 	WAYNIUM_vehiculetype_id_to_string
 } from "@/business/waynium";
+import Card from 'antd/es/card/Card';
+
+import {
+	InfoCircleOutlined
+  } from '@ant-design/icons';
+import SendToContractor, { Contractor_t } from './SendToContractor';
 
 type SetValue<T> = (newValue: T | ((prevValue: T) => T)) => void;
 
@@ -101,37 +107,26 @@ const get_substring_by_brackets = (str: string, offset: number, open: string, cl
 	return str.substring(start + 1, end);
 }
 
-export default function X () {
+export default function X() {
 
-	const [allClients, setAllClients] = useState<{ text:string, value:string }[]>([]);
-	const [allServices, setAllServices] = useState<{ text:string, value:string }[]>([]);
-	const [allPartners, setAllPartners] = useState<{ text:string, value:string }[]>([]);
+	const [allClients, setAllClients] = useState<{ text: string, value: string }[]>([]);
+	const [allServices, setAllServices] = useState<{ text: string, value: string }[]>([]);
+	const [allPartners, setAllPartners] = useState<Contractor_t[]>([]);
 
 	// Date interval
 	const [interval_from, setInterval_from] = useURLState<string>("if", "2023-01-01");
 	const [interval_to, setInterval_to] = useURLState<string>("it", "2023-01-01");
 
-	const getTableData = async (x: { current: number, pageSize: number, sorter:any, filters:any }) => {
+	const getTableData = async (x: { current: number, pageSize: number, sorter: any, filters: any }) => {
 
 		const array_to_string = (arr: string[] | undefined) => {
 
-			if(arr == null) return "";
+			if (arr == null) return "";
 
 			return arr.map((x) => {
 				return `${x}`;
 			}).join(",");
 		}
-
-		const queryx = `
-			&limit=${x.pageSize}
-			&offset=${(x.current - 1) * x.pageSize}
-			
-			${x.filters?.folder_id?.length > 0 ? `&folder_id=${array_to_string(x.filters?.folder_id)}` : ""}
-			${x.filters?.vehicle_type?.length > 0 ? `&vehicle_types=${array_to_string(x.filters?.vehicle_type)}` : ""}
-			${x.filters?.service_type?.length > 0 ? `&service_types=${array_to_string(x.filters?.service_type)}` : ""}
-			${x.filters?.client?.length > 0 ? `&clients=${array_to_string(x.filters?.client)}` : ""}
-			${x.filters?.partner_id?.length > 0 ? `&partners=${array_to_string(x.filters?.partner_id)}` : ""}
-			`;
 
 		const query = `
 			&limit=${x.pageSize}
@@ -144,37 +139,37 @@ export default function X () {
 
 		return fetch(`/api/missions?date_start=${interval_from}&date_end=${interval_to}&${query}`)
 			.then((res) => res.json())
-			.then((res: {count: number, jobs: DataType[]}) => {
+			.then((res: { count: number, jobs: DataType[] }) => {
 
-				console.log({res})
+				console.log({ res })
 
 				let all_clients = new Set<string>();
-				res.jobs.forEach((x: any) => {all_clients.add(x.client);});
+				res.jobs.forEach((x: any) => { all_clients.add(x.client); });
 				setAllClients(
 					Array.from(all_clients).map((x: string) => {
-						return {text: x, value: x}
+						return { text: x, value: x }
 					}).sort((a, b) => a.text.localeCompare(b.text))
 				);
 
 				let all_services = new Set<string>();
-				res.jobs.forEach((x: any) => { if(x != null) all_services.add(x.service_type);});
+				res.jobs.forEach((x: any) => { if (x != null) all_services.add(x.service_type); });
 				setAllServices(
 					Array.from(all_services).map((x: string) => {
-						return {text: WAYNIUM_servicetype_id_to_string(x), value: x}
+						return { text: WAYNIUM_servicetype_id_to_string(x), value: x }
 					})
 						.filter((x) => x.text != null && x.text.length > 0 && x.value != null && x.value.length > 0)
 						.sort((a, b) => a.text.localeCompare(b.text))
 				);
 
 				let all_partners = new Set<string>();
-				res.jobs.forEach((x: any) => {all_partners.add(x.partner_id);});
+				res.jobs.forEach((x: any) => { all_partners.add(x.partner_id); });
 				setAllPartners(
 					Array.from(all_partners).map((x: string) => {
-						return {text: x.split('|')[1], value: x.split('|')[0]}
+						return { text: x.split('|')[1], value: x.split('|')[0] }
 					}).sort((a, b) => a.text.localeCompare(b.text))
 				);
 
-				console.log({all_clients, all_services, all_partners})
+				console.log({ all_clients, all_services, all_partners })
 
 				return {
 					total: res.count,
@@ -195,7 +190,7 @@ export default function X () {
 		return (<>
 			<input type="text" onChange={(e) => {
 				props.setSelectedKeys(e.target.value ? [e.target.value] : []);
-			}}/>
+			}} />
 			<Button onClick={() => {
 				props.confirm();
 			}}>ok
@@ -218,11 +213,11 @@ export default function X () {
 		const [search, setSearch] = useState<string>("");
 
 		return (<>
-			<div style={{margin: 10}}>
+			<div style={{ margin: 10 }}>
 				<Title level={3}>
 					Liste des {props.type}
 				</Title>
-				<div style={{margin: "5px", padding: 10, maxHeight: 400, overflowY: "auto"}}>
+				<div style={{ margin: "5px", padding: 10, maxHeight: 400, overflowY: "auto" }}>
 
 					<Input.Search
 						placeholder="Rechercher"
@@ -233,25 +228,25 @@ export default function X () {
 					></Input.Search>
 					<Divider />
 					{search.length == 0 &&
-					<>
-						<Checkbox
-							indeterminate={indeterminate}
-							onChange={onCheckAllChange}
-							checked={checkAll}
-						>
-							Selectionner tous les {props.type}
-						</Checkbox>
-						<Divider />
-					</>
+						<>
+							<Checkbox
+								indeterminate={indeterminate}
+								onChange={onCheckAllChange}
+								checked={checkAll}
+							>
+								Selectionner tous les {props.type}
+							</Checkbox>
+							<Divider />
+						</>
 					}
 					<CheckboxGroup
-						style={{display: "flex", flexDirection: "column"}}
+						style={{ display: "flex", flexDirection: "column" }}
 						value={checkedList}
 						options={props.choices.map(e => {
 							return {
 								value: e.value,
 								label: e.text,
-								style: {display: search.length > 0 && !e.text.toLowerCase().includes(search.toLowerCase()) ? "none" : ""}
+								style: { display: search.length > 0 && !e.text.toLowerCase().includes(search.toLowerCase()) ? "none" : "" }
 							} as CheckboxOptionType
 						})}
 						onChange={(checkedValues) => {
@@ -263,27 +258,27 @@ export default function X () {
 				<Button
 					style={{ right: 0 }}
 					type={"primary"} onClick={() => {
-					props.confirm();
-				}}>Valider</Button>
+						props.confirm();
+					}}>Valider</Button>
 			</div>
 		</>);
 	}
 
-	const render_address = (t: string, _ : any) => {
+	const render_address = (t: string, _: any) => {
 
-		if(t != null && t.indexOf("%DIC_LIEU_A_DEFINIR%") !== -1) {
+		if (t != null && t.indexOf("%DIC_LIEU_A_DEFINIR%") !== -1) {
 			return <div>Lieu à définir</div>
 		};
 
-		if(t != null && t.length > 12 && t.startsWith("Libellé : [")) {
+		if (t != null && t.length > 12 && t.startsWith("Libellé : [")) {
 			const brackets_a = get_substring_by_brackets(t, 0, "[", "]");
-			const brackets_b = get_substring_by_brackets(t,12, "[", "]");
+			const brackets_b = get_substring_by_brackets(t, 12, "[", "]");
 
-			if(brackets_a.length > 2) {
+			if (brackets_a.length > 2) {
 				return <div>{brackets_a}</div>
 			}
 
-			if(brackets_b.length > 2) {
+			if (brackets_b.length > 2) {
 				return <div>{brackets_b}</div>
 			}
 		}
@@ -297,7 +292,7 @@ export default function X () {
 			dataIndex: 'date_start',
 			key: 'date_start',
 			render: (_, r) => {
-				return <div style={{textAlign: "right"}}>{dayjs(r.date_start).format("DD/MM/YYYY HH:mm")}</div>
+				return <div style={{ textAlign: "right" }}>{dayjs(r.date_start).format("DD/MM/YYYY HH:mm")}</div>
 			},
 			filterDropdown: filter_dropdown,
 			sorter: (a, b) => dayjs(a.date_start).unix() - dayjs(b.date_start).unix(),
@@ -307,7 +302,7 @@ export default function X () {
 			dataIndex: 'date_end',
 			key: 'date_end',
 			render: (_, r) => {
-				return <div style={{textAlign: "right"}}>{dayjs(r.date_end).format("DD/MM/YYYY HH:mm")}</div>
+				return <div style={{ textAlign: "right" }}>{dayjs(r.date_end).format("DD/MM/YYYY HH:mm")}</div>
 			},
 			filterDropdown: filter_dropdown,
 			sorter: (a, b) => dayjs(a.date_end).unix() - dayjs(b.date_end).unix(),
@@ -354,7 +349,7 @@ export default function X () {
 
 				const [partner_id, partner_name] = t.split('|');
 
-				if(partner_id == "null") {
+				if (partner_id == "null") {
 					return <Text type={"danger"}>Aucun !</Text>
 				}
 				return <>{t.split('|')[1]}</>
@@ -413,21 +408,25 @@ export default function X () {
 	const dateFormat = 'YYYY/MM/DD';
 
 	return (<>
-			<div style={{display:"flex", justifyContent: "center", marginBottom: 5}}>
-				<RangePicker
-					defaultValue={[dayjs(interval_from), dayjs(interval_to)]}
-					format={dateFormat}
-					onChange={(dates, dateStrings) => {
-						setInterval_from(dateStrings[0]);
-						setInterval_to(dateStrings[1]);
-						setTimeout(() => {
-							refresh();
-						}, 100);
-					}}
-				/>
-			</div>
-			<Table columns={columns} rowKey="email" {...tableProps}  />
 
-		</>
+		<SendToContractor selectedContractors={allPartners} />
+
+		<div style={{ display: "flex", justifyContent: "center", marginBottom: 5 }}>
+
+			<RangePicker
+				defaultValue={[dayjs(interval_from), dayjs(interval_to)]}
+				format={dateFormat}
+				onChange={(dates, dateStrings) => {
+					setInterval_from(dateStrings[0]);
+					setInterval_to(dateStrings[1]);
+					setTimeout(() => {
+						refresh();
+					}, 100);
+				}}
+			/>
+		</div>
+		<Table columns={columns} rowKey="email" {...tableProps} />
+
+	</>
 	);
 };

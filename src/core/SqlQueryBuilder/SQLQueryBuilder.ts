@@ -136,7 +136,7 @@ export default class SQLQueryBuilder {
 
             const conditionStrings = conditions.map(condition =>
                 {
-                    const valueDisplay = (this.columnTypes[condition.column] === 'string') ? `'${condition.value}'` : condition.value;
+                    const valueDisplay = (this.columnTypes[condition.column] === 'string' && condition.operator != 'IN') ? `'${condition.value}'` : condition.value;
                     return `${condition.column} ${condition.operator} ${valueDisplay}`
                 }
             );

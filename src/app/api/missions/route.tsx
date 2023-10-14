@@ -125,10 +125,10 @@ export async function GET(request: NextRequest) {
         limit ? parseInt(limit) : undefined,
         offset ? parseInt(offset) : undefined,
         filters.folder_id || undefined,
-        filters.vehicle_types || undefined,
-        filters.service_types || undefined,
+        filters.vehicle_type || undefined,
+        filters.service_type || undefined,
         filters.clients || undefined,
-        filters.partners || undefined,
+        filters.partner_id || undefined,
         filters.status || undefined,
     );
     //return NextResponse.json(sf);
