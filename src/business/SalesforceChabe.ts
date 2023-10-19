@@ -7,6 +7,7 @@ type SFJobInformation = {
 	End_Date_Time__c: string;
 	ServiceType_ERP_ID__c: string;
 	Purchase_Price__c: number;
+	Calculated_Incl_VAT_Price__c: number; // Selling price
 	Purchase_Invoice_Number__c: string;
 	Pick_Up_Location__c: string;
 	Drop_Off_Location__c: string;
@@ -45,6 +46,7 @@ class CSalesforceChabe {
 		sqlb.setColumnType("Start_Date_Time__c", "date");
 		sqlb.setColumnType("End_Date_Time__c", "date");
 		sqlb.setColumnType("Purchase_Price__c", "number");
+		sqlb.setColumnType("Calculated_Incl_VAT_Price__c", "number");
 		sqlb.setColumnType("Purchase_Invoice_Number__c", "string");
 		sqlb.setColumnType("Pick_Up_Location__c", "string");
 		sqlb.setColumnType("Drop_Off_Location__c", "string");
@@ -55,6 +57,7 @@ class CSalesforceChabe {
 		sqlb.setColumnType("COM_ID__c", "string");
 		sqlb.setColumnType("Chauffeur_ERP_ID__c", "string");
 		sqlb.setColumnType("ServiceType_ERP_ID__c", "string");
+		sqlb.setColumnType("Client_Salesforce_Code__c", "string");
 
 		sqlb.addFilter("Start_Date_Time__c", ">=", dateBegin.toISOString());
 		sqlb.addFilter("End_Date_Time__c", "<=", dateEnd.toISOString());
@@ -74,7 +77,7 @@ class CSalesforceChabe {
 
 		console.log({countreq, count})
 
-		const query= sqlb.select(["Id", "Start_Date_Time__c", "End_Date_Time__c", "ServiceType_ERP_ID__c", "Purchase_Price__c",
+		const query= sqlb.select(["Id", "Start_Date_Time__c", "End_Date_Time__c", "ServiceType_ERP_ID__c", "Purchase_Price__c", "Calculated_Incl_VAT_Price__c",
 			"Purchase_Invoice_Number__c", "Pick_Up_Location__c", "Drop_Off_Location__c", "Partner_ERP_ID__c",
 			"OrderedVehicleType_ERP_ID__c", "Status_ERP_ID__c", "COM_ID__c", "Client_Salesforce_Code__c",
 			"Chauffeur_ERP_ID__c"]).limit(limit).offset(offset).buildQuery("Job__c");

@@ -127,8 +127,8 @@ export async function GET(request: NextRequest) {
         filters.folder_id || undefined,
         filters.vehicle_type || undefined,
         filters.service_type || undefined,
-        filters.clients || undefined,
-        filters.partner_id || undefined,
+        filters.client || undefined,
+        filters.partner || undefined,
         filters.status || undefined,
     );
     //return NextResponse.json(sf);
@@ -147,19 +147,28 @@ export async function GET(request: NextRequest) {
     const chauf_names = await SalesforceChabe.getChauffeurNames(Array.from(all_chauf_ids));
 
     const mapped = sf.jobs.map((mission) => {
+
+        const partner_name = partner_names.find((x) => x.id == mission.Partner_ERP_ID__c)?.name;
+        const chauf_name = chauf_names.find((x) => x.id == mission.Chauffeur_ERP_ID__c)?.name;
+
+        console.log({mission})
+        console.log({partner_name})
+        console.log({chauf_name})
+        console.log("-------------------")
+
         return {
             date_start: mission.Start_Date_Time__c,
             date_end: mission.End_Date_Time__c,
             folder_id: mission.COM_ID__c,
             vehicle_type: mission.OrderedVehicleType_ERP_ID__c,
             service_type: mission.ServiceType_ERP_ID__c,
-            partner_id: mission.Partner_ERP_ID__c + "|" + partner_names.find((x) => x.id == mission.Partner_ERP_ID__c)?.name || mission.Partner_ERP_ID__c,
-            chauffeur_name: chauf_names.find((x) => x.id == mission.Chauffeur_ERP_ID__c)?.name,
+            partner_id: mission.Partner_ERP_ID__c + "|" + partner_name,
+            chauffeur_name: chauf_name,
             pickup_address: mission.Pick_Up_Location__c,
             dropoff_address: mission.Drop_Off_Location__c,
             buying_price: mission.Purchase_Price__c,
-            selling_price: 4224,
-            profit: ""+(mission.Purchase_Price__c - 4224),
+            selling_price: mission.Calculated_Incl_VAT_Price__c || 0,
+            profit: ""+ (mission.Calculated_Incl_VAT_Price__c - mission.Purchase_Price__c),
             status: mission.Status_ERP_ID__c,
             sent_to_supplier: mission.Purchase_Invoice_Number__c,
             client: mission.Client_Salesforce_Code__c,

@@ -23,13 +23,13 @@ export default function F(props: { pca: PublicClientApplication }) {
 				actions={[
 					<Button key={'auth'} type='primary' onClick={() => props.pca.loginPopup()}>Authentification rapide</Button>,
 					<Button key={'help'} type='default' onClick={() => {
-						const title = "Chabe Commissions - Impossible de se connecter";
+						const title = "Chabe Prefacturation SST - Impossible de se connecter";
 						const body = "Bonjour";
 						window.location.href = "mailto:support@chabe.fr?subject=" + title + "&body=" + body;
 					}}>J{"'"}ai besoin d{"'"}aide</Button>,
 				]}
 			>
-				<Title level={1}>Chabé Commissions</Title>
+				<Title level={1}>Chabé Préfacturation Sous-Traitants</Title>
 				<Paragraph>
 					Veuillez vous authentifier pour accéder à l{"'"}application. <br/>
 					Si vous n{"'"}avez pas de compte, veuillez contacter votre responsable.

@@ -128,7 +128,13 @@ export default class SQLQueryBuilder {
 
                 if (validatedValues.length > 0) {
                     const valuesList = validatedValues.map(value =>
-                        (this.columnTypes[inCondition.column] === 'string') ? `'${value}'` : value
+                        {
+                            if (expectedType === 'string') {
+                                return `'${value}'`;
+                            } else {
+                                return value;
+                            }
+                        }
                     ).join(', ');
                     conditions.push({ column: inCondition.column, operator: 'IN', value: `(${valuesList})` });
                 }
