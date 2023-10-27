@@ -23,7 +23,7 @@
     "eslint-config-next": "13.4.5",
     "jsonwebtoken": "^9.0.0",
     "next": "13.4.5",
-    "postcss": "8.4.24",
+    "postcss": "8.4.31",
     "prisma": "^4.15.0",
     "puppeteer": "^20.8.3",
     "react": "18.2.0",
