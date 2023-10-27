@@ -120,6 +120,9 @@ export async function GET(request: NextRequest) {
     if(limit && isNaN(parseInt(limit))) return NextResponse.json({"error": "limit is not a number"});
     if(offset && isNaN(parseInt(offset))) return NextResponse.json({"error": "offset is not a number"});
 
+    console.log({osts: filters})
+
+
     const sf = await SalesforceChabe.getMissionsBetweenDates(
         new Date(date_start), new Date(date_end),
         limit ? parseInt(limit) : undefined,
@@ -128,10 +131,13 @@ export async function GET(request: NextRequest) {
         filters.vehicle_type || undefined,
         filters.service_type || undefined,
         filters.client || undefined,
-        filters.partner || undefined,
+        filters.partner_id || undefined,
         filters.status || undefined,
+        filters.only_sent_to_supplier??false,
+        filters.only_done_prefacturation??false,
     );
     //return NextResponse.json(sf);
+
 
     const all_partner_ids = new Set<string>();
     for(const mission of sf.jobs) {
@@ -157,6 +163,7 @@ export async function GET(request: NextRequest) {
         console.log("-------------------")
 
         return {
+            id: mission.Id,
             date_start: mission.Start_Date_Time__c,
             date_end: mission.End_Date_Time__c,
             folder_id: mission.COM_ID__c,
@@ -170,8 +177,9 @@ export async function GET(request: NextRequest) {
             selling_price: mission.Calculated_Incl_VAT_Price__c || 0,
             profit: ""+ (mission.Calculated_Incl_VAT_Price__c - mission.Purchase_Price__c),
             status: mission.Status_ERP_ID__c,
-            sent_to_supplier: mission.Purchase_Invoice_Number__c,
+            sent_to_supplier: mission.Transmitted_To_Partner__c,
             client: mission.Client_Salesforce_Code__c,
+            code_sage: mission.Sage_Number__c,
         } as unknown as DataType;
     });
 

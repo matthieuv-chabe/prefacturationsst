@@ -2,22 +2,19 @@
 
 import { Tabs, TabsProps } from "antd";
 import UnboundMissions from "./UnboundMissions";
-
-function BoundInvoices() {
-    return "Z"
-}
+import BoundInvoices from "./BoundInvoices";
 
 export default function SuiviFacturation() {
 
     const items: TabsProps['items'] = [
         {
           key: '1',
-          label: 'Missions non attribuées à une facture',
+          label: 'Missions à traiter',
           children: <UnboundMissions />,
         },
         {
           key: '2',
-          label: 'Liste des factures et des missions',
+          label: 'Missions reliées à une facture',
           children: <BoundInvoices />,
         }
       ];

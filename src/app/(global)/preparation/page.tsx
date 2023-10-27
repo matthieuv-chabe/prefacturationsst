@@ -148,7 +148,7 @@ export default function X() {
 				setAllClients(
 					Array.from(all_clients).map((x: string) => {
 						return { text: x, value: x }
-					}).sort((a, b) => a.text.localeCompare(b.text))
+					}).sort((a, b) =>(a.text || "").localeCompare(b.text))
 				);
 
 				let all_services = new Set<string>();
@@ -158,7 +158,7 @@ export default function X() {
 						return { text: WAYNIUM_servicetype_id_to_string(x), value: x }
 					})
 						.filter((x) => x.text != null && x.text.length > 0 && x.value != null && x.value.length > 0)
-						.sort((a, b) => a.text.localeCompare(b.text))
+						.sort((a, b) => (a.text || "").localeCompare(b.text))
 				);
 
 				let all_partners = new Set<string>();
@@ -166,7 +166,7 @@ export default function X() {
 				setAllPartners(
 					Array.from(all_partners).map((x: string) => {
 						return { text: x.split('|')[1], value: x.split('|')[0] }
-					}).sort((a, b) => a.text.localeCompare(b.text))
+					}).sort((a, b) => (a.text || "").localeCompare(b.text))
 				);
 
 				console.log({ all_clients, all_services, all_partners })
@@ -409,7 +409,11 @@ export default function X() {
 
 	return (<>
 
-		<SendToContractor selectedContractors={allPartners} />
+		<SendToContractor
+			selectedContractors={allPartners}
+			from={new Date(interval_from)}
+			to={new Date(interval_to)}
+		/>
 
 		<div style={{ display: "flex", justifyContent: "center", marginBottom: 5 }}>
 

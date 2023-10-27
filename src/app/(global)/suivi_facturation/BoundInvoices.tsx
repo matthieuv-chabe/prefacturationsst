@@ -131,7 +131,7 @@ export default function X() {
         }
 
         let filters = x.filters || {};
-        filters.only_sent_to_supplier = true;
+        filters.only_done_prefacturation = true;
 
         const query = ` 
 			&limit=${x.pageSize}
@@ -292,6 +292,10 @@ export default function X() {
 
     const columns: ColumnsType<DataType> = [
         {
+            title: 'Sage',
+            dataIndex: 'code_sage',
+        },
+        {
             title: 'Date de début',
             dataIndex: 'date_start',
             key: 'date_start',
@@ -432,116 +436,14 @@ export default function X() {
                     }}
                 />
 
-                <div style={{width: 100}}></div>
-
-                {
-                    selectedRows.length == 0 &&
-                    <Text>
-                        <InfoCircleOutlined /> Sélectionnez des missions pour les attribuer à une facture
-                    </Text>
-                }
-
-                {
-                    selectedRows.length > 0 &&
-                    <Button
-                        type="primary"
-                        shape="round"
-                        icon={<DownloadOutlined />}
-                        size={"middle"}
-                        onClick={() => {
-                            setDrawerVisible(true);
-                        }}
-                    >
-                        Attribuer à une facture
-                    </Button>
-                }
-
             </div>
 
             <Table
                 columns={columns}
                 rowKey="id"
                 {...tableProps}
-
-                rowSelection={{
-                    type: "checkbox",
-                    onChange: (selectedRowKeys, selectedRows) => {
-                        setSelectedRows(selectedRows);
-                    }
-                }}
             />
 
-            <Drawer
-                title="Attribuer à une facture"
-                placement="right"
-                closable={true}
-                onClose={() => {
-                    setDrawerVisible(false);
-                }}
-                visible={drawerVisible}
-            >
-                <Card>
-                    <Text>
-                        <InfoCircleOutlined /> Entrez un numéro de facture pour attribuer les missions sélectionnées à cette facture.
-                    </Text>
-                </Card>
-
-                <div style={{height: 20}}></div>
-
-                <Card
-                    bordered={false}
-                    title={"Informations de facturation"}
-                    actions={[
-                        <Button
-                            key="submit"
-                            type={"primary"}
-                            onClick={() => {
-                                fetch("/api/assignMissionToInvoice", {
-                                    method: "POST",
-                                    body: JSON.stringify({
-                                        missionIds: selectedRows.map((x) => x.id),
-                                        invoice: contractorInvoiceNum,
-                                        sage: sageInvoiceNum,
-                                    })
-                                }).then(() => {
-                                    message.success("Attribution réussie !");
-                                    setDrawerVisible(false);
-                                    refresh();
-                                })
-                            }}
-                            >
-                            Attribuer {selectedRows.length} missions
-                        </Button>
-                    ]}
-                >
-                    <Text>
-                        Numéro de facture
-                    </Text>
-                    <Input
-                        title={"Numéro de facture du sous-traitant"}
-                        value={contractorInvoiceNum}
-                        onChange={(e) => {
-                            setContractorInvoiceNum(e.target.value);
-                        }}
-                    />
-
-                    <div style={{height: 20}}></div>
-
-                    <Text>
-                        Numéro SAGE
-                    </Text>
-                    <Input
-                        title={"Numéro SAGE"}
-                        value={sageInvoiceNum}
-                        onChange={(e) => {
-                            setSageInvoiceNum(e.target.value);
-                        }}
-                    />
-                </Card>
-
-            </Drawer>
-
-            Rows selected: {selectedRows.length}
 
         </>
     );

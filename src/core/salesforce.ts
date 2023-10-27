@@ -87,6 +87,12 @@ class CSalesforce {
     private async _internal_call(full_url: string, type:string = "POST", body: any = {}) {
         revalidatePath(full_url);
         //revalidateTag("salesforce")
+
+        console.log("_internal_call: " + full_url)
+        if(type == "PATCH") {
+            console.log(body);
+        }
+
         let result = await fetch(full_url, {
             method: type,
             headers: {
@@ -101,7 +107,12 @@ class CSalesforce {
             }
         }).then(async response => {
             const text = await response.text();
-            // console.log("TEXT IS : " + text);
+
+            if(type == "PATCH") {
+                // console.log({response:text});
+                return {};
+            }
+
             return JSON.parse(text);
         })
         return result;

@@ -17,6 +17,8 @@ type SFJobInformation = {
 	Client_Salesforce_Code__c: string;
 	COM_ID__c: string;
 	Chauffeur_ERP_ID__c: string;
+	Transmitted_To_Partner__c: string;
+	Sage_Number__c: string;
 }
 
 type SFChauffeur = {
@@ -38,6 +40,8 @@ class CSalesforceChabe {
 		clients: string[] = [],
 		partners: string[] = [],
 		status: string[] = [],
+		only_sent_to_supplier: boolean = false,
+		only_done_prefacturation: boolean = false,
 	): Promise<{count: number, jobs: SFJobInformation[]}> {
 
 		const sqlb = new SQLQueryBuilder();
@@ -58,12 +62,15 @@ class CSalesforceChabe {
 		sqlb.setColumnType("Chauffeur_ERP_ID__c", "string");
 		sqlb.setColumnType("ServiceType_ERP_ID__c", "string");
 		sqlb.setColumnType("Client_Salesforce_Code__c", "string");
+		sqlb.setColumnType("Transmitted_To_Partner__c", "string");
+		sqlb.setColumnType("Sage_Number__c", "string");
 
 		sqlb.addFilter("Start_Date_Time__c", ">=", dateBegin.toISOString());
 		sqlb.addFilter("End_Date_Time__c", "<=", dateEnd.toISOString());
 		sqlb.addFilter("Partner_ERP_ID__c", "<>", "0");
 		sqlb.addFilter("Partner_ERP_ID__c", "<>", "1");
 		sqlb.addFilter("Partner_ERP_ID__c", "<>", "null");
+		sqlb.addInCondition("Status_ERP_ID__c", ["22"]); // Facture générée
 
 		if (folder_id != "0") 			{ sqlb.addFilter("COM_ID__c", "=", folder_id); }
 		if (vehicle_types.length > 0) 	{ sqlb.addInCondition("OrderedVehiculeType_ERP_ID__c", vehicle_types) }
@@ -72,6 +79,19 @@ class CSalesforceChabe {
 		if (partners.length > 0) 		{ sqlb.addInCondition("Partner_ERP_ID__c", partners) }
 		if (status.length > 0) 			{ sqlb.addInCondition("Status_ERP_ID__c", status) }
 
+		if (only_sent_to_supplier) 		{
+			// Sent to supplier could be either sent or ignored. Only empty is not sent.
+			console.log("Only sent to supplier")
+			sqlb.addFilter("Transmitted_To_Partner__c", "<>", "");
+
+			// Dont show if the mission is already in a bill
+			sqlb.addFilter("Purchase_Invoice_Number__c", "=", "");
+		}
+
+		if(only_done_prefacturation) {
+			sqlb.addFilter("Purchase_Invoice_Number__c", "<>", "");
+		}
+
 		const countreq = sqlb.select_once(["COUNT(Id)"]).buildQuery("Job__c");
 		const count = (await Salesforce.soql(countreq)).records[0].expr0;
 
@@ -79,8 +99,8 @@ class CSalesforceChabe {
 
 		const query= sqlb.select(["Id", "Start_Date_Time__c", "End_Date_Time__c", "ServiceType_ERP_ID__c", "Purchase_Price__c", "Calculated_Incl_VAT_Price__c",
 			"Purchase_Invoice_Number__c", "Pick_Up_Location__c", "Drop_Off_Location__c", "Partner_ERP_ID__c",
-			"OrderedVehicleType_ERP_ID__c", "Status_ERP_ID__c", "COM_ID__c", "Client_Salesforce_Code__c",
-			"Chauffeur_ERP_ID__c"]).limit(limit).offset(offset).buildQuery("Job__c");
+			"OrderedVehicleType_ERP_ID__c", "Status_ERP_ID__c", "COM_ID__c", "Client_Salesforce_Code__c", "Transmitted_To_Partner__c",
+			"Chauffeur_ERP_ID__c", "Sage_Number__c"]).limit(limit).offset(offset).buildQuery("Job__c");
 		const qresult = await Salesforce.soql(query);
 
 		console.log({query, qresult})
@@ -104,6 +124,12 @@ class CSalesforceChabe {
 		console.log({query})
 		const qresult = await Salesforce.soql(query);
 		return qresult.records.map(e => ({id: e.CHU_ID__c, name: e.CHU_PRENOM__c + " " + e.CHU_NOM__c}));
+	}
+
+	public async get_all_missions_for_contractor(contractorId: string, from: Date, to: Date) : Promise<SFJobInformation[]> {
+		const query = `SELECT Id FROM Job__c WHERE Partner_ERP_ID__c = '${contractorId}' AND Start_Date_Time__c >= ${from.toISOString()} AND End_Date_Time__c <= ${to.toISOString()}`;
+		const qresult = await Salesforce.soql(query);
+		return qresult.records as unknown as SFJobInformation[];
 	}
 
 }
