@@ -42,6 +42,7 @@ class CSalesforceChabe {
 		status: string[] = [],
 		only_sent_to_supplier: boolean = false,
 		only_done_prefacturation: boolean = false,
+		chauffeur_names: string[] = []
 	): Promise<{count: number, jobs: SFJobInformation[]}> {
 
 		const sqlb = new SQLQueryBuilder();
@@ -70,7 +71,7 @@ class CSalesforceChabe {
 		sqlb.addFilter("Partner_ERP_ID__c", "<>", "0");
 		sqlb.addFilter("Partner_ERP_ID__c", "<>", "1");
 		sqlb.addFilter("Partner_ERP_ID__c", "<>", "null");
-		sqlb.addInCondition("Status_ERP_ID__c", ["22"]); // Facture générée
+		// sqlb.addInCondition("Status_ERP_ID__c", ["22"]); // Facture générée
 
 		if (folder_id != "0") 			{ sqlb.addFilter("COM_ID__c", "=", folder_id); }
 		if (vehicle_types.length > 0) 	{ sqlb.addInCondition("OrderedVehiculeType_ERP_ID__c", vehicle_types) }
@@ -78,6 +79,10 @@ class CSalesforceChabe {
 		if (clients.length > 0) 		{ sqlb.addInCondition("Client_Salesforce_Code__c", clients) }
 		if (partners.length > 0) 		{ sqlb.addInCondition("Partner_ERP_ID__c", partners) }
 		if (status.length > 0) 			{ sqlb.addInCondition("Status_ERP_ID__c", status) }
+
+		if (chauffeur_names.length > 0) {
+			sqlb.addInCondition("Chauffeur_ERP_ID__c", chauffeur_names);
+		}
 
 		if (only_sent_to_supplier) 		{
 			// Sent to supplier could be either sent or ignored. Only empty is not sent.

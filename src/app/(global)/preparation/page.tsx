@@ -112,6 +112,8 @@ export default function X() {
 	const [allClients, setAllClients] = useState<{ text: string, value: string }[]>([]);
 	const [allServices, setAllServices] = useState<{ text: string, value: string }[]>([]);
 	const [allPartners, setAllPartners] = useState<Contractor_t[]>([]);
+	const [allChauffeurs, setAllChauffeurs] = useState<{ text: string, value: string }[]>([]);
+	const [allStatus, setAllStatus] = useState<{ text: string, value: string }[]>([]);
 
 	// Date interval
 	const [interval_from, setInterval_from] = useURLState<string>("if", "2023-01-01");
@@ -167,6 +169,26 @@ export default function X() {
 					Array.from(all_partners).map((x: string) => {
 						return { text: x.split('|')[1], value: x.split('|')[0] }
 					}).sort((a, b) => (a.text || "").localeCompare(b.text))
+				);
+
+				let all_chauffeurs = new Set<string>();
+				res.jobs.forEach((x: any) => { all_chauffeurs.add(x.chauffeur_name); });
+				setAllChauffeurs(
+					Array.from(all_chauffeurs).map((x: string) => {
+						return { text: x.split("|")[1], value: x.split("|")[0] }
+					})
+						.filter((x) => x.text != null && x.text.length > 0 && x.value != null && x.value.length > 0)
+						.sort((a, b) => (a.text || "").localeCompare(b.text))
+				);
+
+				let all_status = new Set<string>();
+				res.jobs.forEach((x: any) => { all_status.add(x.status); });
+				setAllStatus(
+					Array.from(all_status).map((x: string) => {
+						return { text: WAYNIUM_statut_id_to_string(x), value: x }
+					})
+						.filter((x) => x.text != null && x.text.length > 0 && x.value != null && x.value.length > 0)
+						.sort((a, b) => (a.text || "").localeCompare(b.text))
 				);
 
 				console.log({ all_clients, all_services, all_partners })
@@ -246,7 +268,9 @@ export default function X() {
 							return {
 								value: e.value,
 								label: e.text,
-								style: { display: search.length > 0 && !e.text.toLowerCase().includes(search.toLowerCase()) ? "none" : "" }
+								style: {
+									display: search.length > 0 && !e.text.toLowerCase().includes(search.toLowerCase()) ? "none" : ""
+								}
 							} as CheckboxOptionType
 						})}
 						onChange={(checkedValues) => {
@@ -364,6 +388,15 @@ export default function X() {
 		{
 			title: 'Chauffeur',
 			dataIndex: 'chauffeur_name',
+			filterDropdown: (props) => <FilterDropdownCheckboxes
+				choices={allChauffeurs.map((x) => ({ text: x.text, value: x.value }))}
+				type={"chauffeurs"}
+				setSelectedKeys={props.setSelectedKeys}
+				confirm={props.confirm}
+			/>,
+			render: (t) => {
+				return t?.split("|")[1]||"Aucun"
+			}
 		},
 		{
 			title: 'Adresse de prise en charge',
@@ -376,31 +409,60 @@ export default function X() {
 			render: render_address,
 		},
 		{
-			title: 'Prix d\'achat',
+			title: 'Prix d\'achat TTC',
 			dataIndex: 'buying_price',
 			sorter: (a, b) => {
 				return parseFloat(a.buying_price) - parseFloat(b.buying_price);
 			}
 		},
 		{
-			title: 'Prix de vente',
+			title: 'Prix de vente TTC',
 			dataIndex: 'selling_price',
 		},
 		{
 			title: 'Profit',
 			dataIndex: 'profit',
+			render: (t, obj) => {
+
+				const p_achat = parseFloat(obj.buying_price);
+				const p_vente = parseFloat(obj.selling_price);
+
+				const percent = (p_vente - p_achat) / p_achat * 100;
+				return <Text>{percent.toFixed(2)} %</Text>
+
+				// const profit = parseFloat(t);
+				// if (profit > 0) {
+				// 	return <Text type={"success"}>{profit} €</Text>
+				// } else if (profit < 0) {
+				// 	return <Text type={"danger"}>{profit} €</Text>
+				// } else {
+				// 	return <Text>{profit} €</Text>
+				// }
+			}
 		},
 		{
 			title: 'Statut',
 			dataIndex: 'status',
+			filterDropdown: (props) => <FilterDropdownCheckboxes
+				choices={[
+					{ text: "En attente", value: "En attente" },
+					{ text: "En cours", value: "En cours" },
+					{ text: "Terminé", value: "Terminé" },
+					{ text: "Annulé", value: "Annulé" },
+				]}
+				type={"statuts"}
+				setSelectedKeys={props.setSelectedKeys}
+				confirm={props.confirm}
+			/>,
 			render: (t) => {
 				return <>{WAYNIUM_statut_id_to_string(t)}</>
 			}
-		},
-		{
-			title: 'Envoyé au fournisseur',
-			dataIndex: 'sent_to_supplier',
 		}
+		// ,
+		// {
+		// 	title: 'Envoyé au fournisseur',
+		// 	dataIndex: 'sent_to_supplier',
+		// }
 	];
 
 	const { RangePicker } = DatePicker;

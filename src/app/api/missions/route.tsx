@@ -135,6 +135,7 @@ export async function GET(request: NextRequest) {
         filters.status || undefined,
         filters.only_sent_to_supplier??false,
         filters.only_done_prefacturation??false,
+        filters.chauffeur_name??[]
     );
     //return NextResponse.json(sf);
 
@@ -170,7 +171,7 @@ export async function GET(request: NextRequest) {
             vehicle_type: mission.OrderedVehicleType_ERP_ID__c,
             service_type: mission.ServiceType_ERP_ID__c,
             partner_id: mission.Partner_ERP_ID__c + "|" + partner_name,
-            chauffeur_name: chauf_name,
+            chauffeur_name: mission.Chauffeur_ERP_ID__c + "|" + chauf_name,
             pickup_address: mission.Pick_Up_Location__c,
             dropoff_address: mission.Drop_Off_Location__c,
             buying_price: mission.Purchase_Price__c,
