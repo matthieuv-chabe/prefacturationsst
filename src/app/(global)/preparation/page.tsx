@@ -67,6 +67,7 @@ function useURLState<T>(
 }
 
 export type DataType = {
+	id: string,
 	date_start: string,
 	date_end: string,
 	folder_id: string,

@@ -1,8 +1,8 @@
 
 
+import { DataType } from "@/app/(global)/preparation/page";
 import { SalesforceChabe } from "@/business/SalesforceChabe";
 import { NextRequest, NextResponse } from "next/server";
-import {DataType} from "@/app/(global)/preparation/page";
 
 const SafeStr = (string: string | null): string => {
     if(!string) return "";
@@ -91,24 +91,6 @@ const SafeCommaArray = (string: string | null): string[] => {
 //
 //     return NextResponse.json({count: sf.count, jobs: mapped});
 // }
-
-type DataType = {
-	date_start: string,
-	date_end: string,
-	folder_id: string,
-	vehicle_type: string,
-	service_type: string,
-	partner_id: string,
-	chauffeur_name: string,
-	pickup_address: string,
-	dropoff_address: string,
-	buying_price: string,
-	selling_price: string,
-	profit: string,
-	status: string,
-	sent_to_supplier: string,
-	client: string,
-}
 
 export async function POST(request: NextRequest) {
 
