@@ -251,6 +251,9 @@ export default function X() {
 		{
 			title: 'Prix de vente TTC',
 			dataIndex: 'selling_price',
+			sorter: (a, b) => {
+				return parseFloat(a.selling_price) - parseFloat(b.selling_price);
+			}
 		},
 		{
 			title: 'Profit',
