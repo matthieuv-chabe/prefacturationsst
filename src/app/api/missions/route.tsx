@@ -93,6 +93,9 @@ const SafeCommaArray = (string: string | null): string[] => {
 // }
 
 export async function GET(request: NextRequest) {
+
+    return NextResponse.json({count: 0, jobs: []});
+
     const search = request.nextUrl.searchParams;
 
     const filters_s = search.get("filters");
@@ -111,8 +114,8 @@ export async function GET(request: NextRequest) {
         // return NextResponse.json({"error": "sorters is not a valid JSON object"});
     }
 
-    const limit = search.get("limit") || "100";
-    const offset = search.get("offset") || "0";
+    const limit = search.get("limit") ?? "100";
+    const offset = search.get("offset") ?? "0";
 
     const date_start = SafeStr(search.get("date_start"))
     const date_end = SafeStr(search.get("date_end"))
@@ -125,17 +128,17 @@ export async function GET(request: NextRequest) {
 
     const sf = await SalesforceChabe.getMissionsBetweenDates(
         new Date(date_start), new Date(date_end),
-        limit ? parseInt(limit) : undefined,
-        offset ? parseInt(offset) : undefined,
-        filters.folder_id || undefined,
-        filters.vehicle_type || undefined,
-        filters.service_type || undefined,
-        filters.client || undefined,
-        filters.partner_id || undefined,
-        filters.status || undefined,
-        filters.only_sent_to_supplier??false,
-        filters.only_done_prefacturation??false,
-        filters.chauffeur_name??[]
+        // limit ? parseInt(limit) : undefined,
+        // offset ? parseInt(offset) : undefined,
+        // filters.folder_id || undefined,
+        // filters.vehicle_type || undefined,
+        // filters.service_type || undefined,
+        // filters.client || undefined,
+        // filters.partner_id || undefined,
+        // filters.status || undefined,
+        // filters.only_sent_to_supplier??false,
+        // filters.only_done_prefacturation??false,
+        // filters.chauffeur_name??[]
     );
     //return NextResponse.json(sf);
 

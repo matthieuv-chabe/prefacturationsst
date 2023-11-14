@@ -32,6 +32,16 @@ class CSalesforceChabe {
 	public async getMissionsBetweenDates(
 		dateBegin: Date,
 		dateEnd: Date,
+	): Promise<{count: number, jobs: SFJobInformation[]}>
+	{
+		const query = `SELECT Id, Start_Date_Time__c, End_Date_Time__c, ServiceType_ERP_ID__c, Purchase_Price__c, Calculated_Incl_VAT_Price__c, Purchase_Invoice_Number__c, Pick_Up_Location__c, Drop_Off_Location__c, Partner_ERP_ID__c, OrderedVehicleType_ERP_ID__c, Status_ERP_ID__c, Client_Salesforce_Code__c, COM_ID__c, Chauffeur_ERP_ID__c, Transmitted_To_Partner__c, Sage_Number__c FROM Job__c WHERE Start_Date_Time__c >= ${dateBegin.toISOString()} AND End_Date_Time__c <= ${dateEnd.toISOString()}`;
+		const qresult = await Salesforce.soql(query);
+		return { count: qresult.totalSize, jobs: qresult.records as unknown as SFJobInformation[]};
+	}
+
+	public async getMissionsBetweenDatesWhere(
+		dateBegin: Date,
+		dateEnd: Date,
 		limit: number = 100,
 		offset: number = 0,
 		folder_id: string = "0",
@@ -73,35 +83,35 @@ class CSalesforceChabe {
 		sqlb.addFilter("Partner_ERP_ID__c", "<>", "null");
 		// sqlb.addInCondition("Status_ERP_ID__c", ["22"]); // Facture générée
 
-		if (folder_id != "0") 			{ sqlb.addFilter("COM_ID__c", "=", folder_id); }
-		if (vehicle_types.length > 0) 	{ sqlb.addInCondition("OrderedVehiculeType_ERP_ID__c", vehicle_types) }
-		if (service_types.length > 0) 	{ sqlb.addInCondition("ServiceType_ERP_ID__c", service_types) }
-		if (clients.length > 0) 		{ sqlb.addInCondition("Client_Salesforce_Code__c", clients) }
-		if (partners.length > 0) 		{ sqlb.addInCondition("Partner_ERP_ID__c", partners) }
-		if (status.length > 0) 			{ sqlb.addInCondition("Status_ERP_ID__c", status) }
+		// if (folder_id != "0") 			{ sqlb.addFilter("COM_ID__c", "=", folder_id); }
+		// if (vehicle_types.length > 0) 	{ sqlb.addInCondition("OrderedVehiculeType_ERP_ID__c", vehicle_types) }
+		// if (service_types.length > 0) 	{ sqlb.addInCondition("ServiceType_ERP_ID__c", service_types) }
+		// if (clients.length > 0) 		{ sqlb.addInCondition("Client_Salesforce_Code__c", clients) }
+		// if (partners.length > 0) 		{ sqlb.addInCondition("Partner_ERP_ID__c", partners) }
+		// if (status.length > 0) 			{ sqlb.addInCondition("Status_ERP_ID__c", status) }
 
-		if (chauffeur_names.length > 0) {
-			sqlb.addInCondition("Chauffeur_ERP_ID__c", chauffeur_names);
-		}
-
-		if (only_sent_to_supplier) 		{
-			// Sent to supplier could be either sent or ignored. Only empty is not sent.
-			console.log("Only sent to supplier")
-			sqlb.addFilter("Transmitted_To_Partner__c", "<>", "");
-
-			// Dont show if the mission is already in a bill
-			sqlb.addFilter("Purchase_Invoice_Number__c", "=", "");
-		}
-
-		if(only_done_prefacturation) {
-			sqlb.addFilter("Purchase_Invoice_Number__c", "<>", "");
-		}
+		// if (chauffeur_names.length > 0) {
+		// 	sqlb.addInCondition("Chauffeur_ERP_ID__c", chauffeur_names);
+		// }
+		//
+		// if (only_sent_to_supplier) 		{
+		// 	// Sent to supplier could be either sent or ignored. Only empty is not sent.
+		// 	console.log("Only sent to supplier")
+		// 	sqlb.addFilter("Transmitted_To_Partner__c", "<>", "");
+		//
+		// 	// Dont show if the mission is already in a bill
+		// 	sqlb.addFilter("Purchase_Invoice_Number__c", "=", "");
+		// }
+		//
+		// if(only_done_prefacturation) {
+		// 	sqlb.addFilter("Purchase_Invoice_Number__c", "<>", "");
+		// }
 
 		const countreq = sqlb.select_once(["COUNT(Id)"]).buildQuery("Job__c");
 		const count = (await Salesforce.soql(countreq)).records[0].expr0;
 
 		console.log({countreq, count})
-
+		sqlb.limit(100)
 		const query= sqlb.select(["Id", "Start_Date_Time__c", "End_Date_Time__c", "ServiceType_ERP_ID__c", "Purchase_Price__c", "Calculated_Incl_VAT_Price__c",
 			"Purchase_Invoice_Number__c", "Pick_Up_Location__c", "Drop_Off_Location__c", "Partner_ERP_ID__c",
 			"OrderedVehicleType_ERP_ID__c", "Status_ERP_ID__c", "COM_ID__c", "Client_Salesforce_Code__c", "Transmitted_To_Partner__c",
@@ -114,6 +124,7 @@ class CSalesforceChabe {
 		sqlb.offset(0);
 		sqlb.limit(0);
 
+		console.log({query})
 		return { count, jobs: qresult.records as unknown as SFJobInformation[]};
 	}
 

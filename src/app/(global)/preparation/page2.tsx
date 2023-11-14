@@ -1,17 +1,6 @@
 "use client";
 
-import {
-	Button,
-	Checkbox,
-	DatePicker,
-	Divider,
-	Dropdown,
-	Input, MenuProps,
-	message, Select, Space,
-	Table,
-	TableColumnProps,
-	Typography
-} from 'antd';
+import { Button, Checkbox, DatePicker, Divider, Input, message, Table, TableColumnProps, Typography } from 'antd';
 import React, { useState, useEffect } from "react";
 import { useAntdTable } from 'ahooks';
 import { ColumnsType } from "antd/es/table";
@@ -26,9 +15,8 @@ import {
 import Card from 'antd/es/card/Card';
 
 import {
-	DownOutlined,
 	InfoCircleOutlined
-} from '@ant-design/icons';
+  } from '@ant-design/icons';
 import SendToContractor, { Contractor_t } from './SendToContractor';
 
 type SetValue<T> = (newValue: T | ((prevValue: T) => T)) => void;
@@ -483,13 +471,6 @@ export default function X() {
 	const { Text, Title } = Typography;
 	const dateFormat = 'YYYY/MM/DD';
 
-	const [allPartnersX, setAllPartnersX] = useState<any[]>([]);
-	useEffect(() => {
-		fetch("/api/contractors").then((res) => res.json()).then((res) => {
-			setAllPartnersX(res);
-		});
-	}, []);
-
 	return (<>
 
 		<SendToContractor
@@ -511,13 +492,6 @@ export default function X() {
 					}, 100);
 				}}
 			/>
-
-			<Select
-				placeholder={"Choisissez un partenaire"}
-				onChange={() => {}}
-				options={allPartnersX.map(x => ({value: x.id, label: x.name}))}
-			/>
-
 		</div>
 		<Table columns={columns} rowKey="email" {...tableProps} />
 
