@@ -92,55 +92,41 @@ const SafeCommaArray = (string: string | null): string[] => {
 //     return NextResponse.json({count: sf.count, jobs: mapped});
 // }
 
-export async function GET(request: NextRequest) {
+type DataType = {
+	date_start: string,
+	date_end: string,
+	folder_id: string,
+	vehicle_type: string,
+	service_type: string,
+	partner_id: string,
+	chauffeur_name: string,
+	pickup_address: string,
+	dropoff_address: string,
+	buying_price: string,
+	selling_price: string,
+	profit: string,
+	status: string,
+	sent_to_supplier: string,
+	client: string,
+}
 
-    return NextResponse.json({count: 0, jobs: []});
+export async function POST(request: NextRequest) {
 
-    const search = request.nextUrl.searchParams;
+    // const search = request.nextUrl.searchParams;
+    // const date_start = SafeStr(search.get("date_start"))
+    // const date_end = SafeStr(search.get("date_end"))
+    // const partner = SafeStr(search.get("partner"))
+    
+    const body = await request.json();
+    const date_start = body.start;
+    const date_end = body.end;
+    const partner = body.partner;
 
-    const filters_s = search.get("filters");
-    let filters: any = {};
-    try {
-        filters = filters_s ? JSON.parse(filters_s) : {};
-    } catch(e) {
-        // return NextResponse.json({"error": "filters is not a valid JSON object"});
-    }
-
-    const sorters_s= search.get("sorters");
-    let sorters : any = {};
-    try {
-        sorters = sorters_s ? JSON.parse(sorters_s) : {};
-    } catch(e) {
-        // return NextResponse.json({"error": "sorters is not a valid JSON object"});
-    }
-
-    const limit = search.get("limit") ?? "100";
-    const offset = search.get("offset") ?? "0";
-
-    const date_start = SafeStr(search.get("date_start"))
-    const date_end = SafeStr(search.get("date_end"))
-
-    if(limit && isNaN(parseInt(limit))) return NextResponse.json({"error": "limit is not a number"});
-    if(offset && isNaN(parseInt(offset))) return NextResponse.json({"error": "offset is not a number"});
-
-    console.log({osts: filters})
-
+    console.log({date_start, date_end, partner})
 
     const sf = await SalesforceChabe.getMissionsBetweenDates(
-        new Date(date_start), new Date(date_end),
-        // limit ? parseInt(limit) : undefined,
-        // offset ? parseInt(offset) : undefined,
-        // filters.folder_id || undefined,
-        // filters.vehicle_type || undefined,
-        // filters.service_type || undefined,
-        // filters.client || undefined,
-        // filters.partner_id || undefined,
-        // filters.status || undefined,
-        // filters.only_sent_to_supplier??false,
-        // filters.only_done_prefacturation??false,
-        // filters.chauffeur_name??[]
+        new Date(date_start), new Date(date_end), partner
     );
-    //return NextResponse.json(sf);
 
 
     const all_partner_ids = new Set<string>();
@@ -156,36 +142,58 @@ export async function GET(request: NextRequest) {
     const partner_names = await SalesforceChabe.getPartnerNames(Array.from(all_partner_ids));
     const chauf_names = await SalesforceChabe.getChauffeurNames(Array.from(all_chauf_ids));
 
-    const mapped = sf.jobs.map((mission) => {
+    const result = sf.jobs.map((mission) => ({
+        id: mission.Id,
+        date_start: mission.Start_Date_Time__c,
+        date_end: mission.End_Date_Time__c,
+        folder_id: mission.COM_ID__c,
+        vehicle_type: mission.OrderedVehicleType_ERP_ID__c,
+        service_type: mission.ServiceType_ERP_ID__c,
+        partner_id: mission.Partner_ERP_ID__c + "|" + partner_names.find((x) => x.id == mission.Partner_ERP_ID__c)?.name,
+        chauffeur_name: chauf_names.find((x) => x.id == mission.Chauffeur_ERP_ID__c)?.name,
+        pickup_address: mission.Pick_Up_Location__c,
+        dropoff_address: mission.Drop_Off_Location__c,
+        buying_price: mission.Purchase_Price__c,
+        selling_price: mission.Calculated_Incl_VAT_Price__c || 0,
+        profit: (mission.Calculated_Incl_VAT_Price__c - mission.Purchase_Price__c) / mission.Calculated_Incl_VAT_Price__c,
+        status: mission.Status_ERP_ID__c,
+        sent_to_supplier: mission.Purchase_Invoice_Number__c,
+        client: mission.Client_Salesforce_Code__c,
+    } as unknown as DataType));
 
-        const partner_name = partner_names.find((x) => x.id == mission.Partner_ERP_ID__c)?.name;
-        const chauf_name = chauf_names.find((x) => x.id == mission.Chauffeur_ERP_ID__c)?.name;
+    return NextResponse.json({count: result.length, jobs: result});
 
-        console.log({mission})
-        console.log({partner_name})
-        console.log({chauf_name})
-        console.log("-------------------")
 
-        return {
-            id: mission.Id,
-            date_start: mission.Start_Date_Time__c,
-            date_end: mission.End_Date_Time__c,
-            folder_id: mission.COM_ID__c,
-            vehicle_type: mission.OrderedVehicleType_ERP_ID__c,
-            service_type: mission.ServiceType_ERP_ID__c,
-            partner_id: mission.Partner_ERP_ID__c + "|" + partner_name,
-            chauffeur_name: mission.Chauffeur_ERP_ID__c + "|" + chauf_name,
-            pickup_address: mission.Pick_Up_Location__c,
-            dropoff_address: mission.Drop_Off_Location__c,
-            buying_price: mission.Purchase_Price__c,
-            selling_price: mission.Calculated_Incl_VAT_Price__c || 0,
-            profit: ""+ (mission.Calculated_Incl_VAT_Price__c - mission.Purchase_Price__c),
-            status: mission.Status_ERP_ID__c,
-            sent_to_supplier: mission.Transmitted_To_Partner__c,
-            client: mission.Client_Salesforce_Code__c,
-            code_sage: mission.Sage_Number__c,
-        } as unknown as DataType;
-    });
+    // const mapped = sf.jobs.map((mission) => {
+// 
+    //     const partner_name = partner_names.find((x) => x.id == mission.Partner_ERP_ID__c)?.name;
+    //     const chauf_name = chauf_names.find((x) => x.id == mission.Chauffeur_ERP_ID__c)?.name;
 
-    return NextResponse.json({count: sf.count, jobs: mapped});
+    //     console.log({mission})
+    //     console.log({partner_name})
+    //     console.log({chauf_name})
+    //     console.log("-------------------")
+
+    //     return {
+    //         id: mission.Id,
+    //         date_start: mission.Start_Date_Time__c,
+    //         date_end: mission.End_Date_Time__c,
+    //         folder_id: mission.COM_ID__c,
+    //         vehicle_type: mission.OrderedVehicleType_ERP_ID__c,
+    //         service_type: mission.ServiceType_ERP_ID__c,
+    //         partner_id: mission.Partner_ERP_ID__c + "|" + partner_name,
+    //         chauffeur_name: mission.Chauffeur_ERP_ID__c + "|" + chauf_name,
+    //         pickup_address: mission.Pick_Up_Location__c,
+    //         dropoff_address: mission.Drop_Off_Location__c,
+    //         buying_price: mission.Purchase_Price__c,
+    //         selling_price: mission.Calculated_Incl_VAT_Price__c || 0,
+    //         profit: ""+ (mission.Calculated_Incl_VAT_Price__c - mission.Purchase_Price__c),
+    //         status: mission.Status_ERP_ID__c,
+    //         sent_to_supplier: mission.Transmitted_To_Partner__c,
+    //         client: mission.Client_Salesforce_Code__c,
+    //         code_sage: mission.Sage_Number__c,
+    //     } as unknown as DataType;
+    // });
+
+    // return NextResponse.json({count: sf.count, jobs: mapped});
 }

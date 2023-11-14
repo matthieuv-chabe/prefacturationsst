@@ -2,34 +2,20 @@
 
 import {
 	Button,
-	Checkbox,
 	DatePicker,
-	Divider,
-	Dropdown,
-	Input, MenuProps,
-	message, Select, Space,
+	Select,
 	Table,
-	TableColumnProps,
 	Typography
 } from 'antd';
 import React, { useState, useEffect } from "react";
-import { useAntdTable } from 'ahooks';
 import { ColumnsType } from "antd/es/table";
-import dayjs, { Dayjs } from "dayjs";
-import { CheckboxOptionType, CheckboxValueType } from "antd/es/checkbox/Group";
-import { CheckboxChangeEvent } from "antd/es/checkbox";
+import dayjs from "dayjs";
 import {
 	WAYNIUM_servicetype_id_to_string,
 	WAYNIUM_statut_id_to_string,
 	WAYNIUM_vehiculetype_id_to_string
 } from "@/business/waynium";
-import Card from 'antd/es/card/Card';
-
-import {
-	DownOutlined,
-	InfoCircleOutlined
-} from '@ant-design/icons';
-import SendToContractor, { Contractor_t } from './SendToContractor';
+import { FilterDropdownCheckboxes } from './fdc';
 
 type SetValue<T> = (newValue: T | ((prevValue: T) => T)) => void;
 
@@ -119,186 +105,34 @@ const get_substring_by_brackets = (str: string, offset: number, open: string, cl
 	return str.substring(start + 1, end);
 }
 
+function unique(inp: { text:string, value: string }[]) {
+	const seen = new Set<string>();
+	return inp.filter(el => {
+		const duplicate = seen.has(el.value);
+		seen.add(el.value);
+		return !duplicate;
+	});
+}
+
 export default function X() {
 
-	const [allClients, setAllClients] = useState<{ text: string, value: string }[]>([]);
-	const [allServices, setAllServices] = useState<{ text: string, value: string }[]>([]);
-	const [allPartners, setAllPartners] = useState<Contractor_t[]>([]);
-	const [allChauffeurs, setAllChauffeurs] = useState<{ text: string, value: string }[]>([]);
-	const [allStatus, setAllStatus] = useState<{ text: string, value: string }[]>([]);
 
 	// Date interval
 	const [interval_from, setInterval_from] = useURLState<string>("if", "2023-01-01");
 	const [interval_to, setInterval_to] = useURLState<string>("it", "2023-01-01");
 
-	const getTableData = async (x: { current: number, pageSize: number, sorter: any, filters: any }) => {
+	const { RangePicker } = DatePicker;
+	const { Text, Title } = Typography;
+	const dateFormat = 'YYYY-MM-DD';
 
-		const array_to_string = (arr: string[] | undefined) => {
+	const [allPartnersX, setAllPartnersX] = useState<any[]>([]);
+	const [selectedPartner, setSelectedPartner] = useState<string>("");
+	const [allMissions, setAllMissions] = useState<any[]>([]);
+	const [loading, setLoading] = useState<boolean>(false);
+	const [selected, setSelected] = useState<string[]>([]);
 
-			if (arr == null) return "";
+	const [filter_folder_id, setFilter_folder_id] = useState<string[]>([]);
 
-			return arr.map((x) => {
-				return `${x}`;
-			}).join(",");
-		}
-
-		const query = `
-			&limit=${x.pageSize}
-			&offset=${(x.current - 1) * x.pageSize}
-			&filters=${JSON.stringify(x.filters)}
-			&sorter=${JSON.stringify(x.sorter)}
-		`;
-
-
-
-		return fetch(`/api/missions?date_start=${interval_from}&date_end=${interval_to}&${query}`)
-			.then((res) => res.json())
-			.then((res: { count: number, jobs: DataType[] }) => {
-
-				console.log({ res })
-
-				let all_clients = new Set<string>();
-				res.jobs.forEach((x: any) => { all_clients.add(x.client); });
-				setAllClients(
-					Array.from(all_clients).map((x: string) => {
-						return { text: x, value: x }
-					}).sort((a, b) =>(a.text || "").localeCompare(b.text))
-				);
-
-				let all_services = new Set<string>();
-				res.jobs.forEach((x: any) => { if (x != null) all_services.add(x.service_type); });
-				setAllServices(
-					Array.from(all_services).map((x: string) => {
-						return { text: WAYNIUM_servicetype_id_to_string(x), value: x }
-					})
-						.filter((x) => x.text != null && x.text.length > 0 && x.value != null && x.value.length > 0)
-						.sort((a, b) => (a.text || "").localeCompare(b.text))
-				);
-
-				let all_partners = new Set<string>();
-				res.jobs.forEach((x: any) => { all_partners.add(x.partner_id); });
-				setAllPartners(
-					Array.from(all_partners).map((x: string) => {
-						return { text: x.split('|')[1], value: x.split('|')[0] }
-					}).sort((a, b) => (a.text || "").localeCompare(b.text))
-				);
-
-				let all_chauffeurs = new Set<string>();
-				res.jobs.forEach((x: any) => { all_chauffeurs.add(x.chauffeur_name); });
-				setAllChauffeurs(
-					Array.from(all_chauffeurs).map((x: string) => {
-						return { text: x.split("|")[1], value: x.split("|")[0] }
-					})
-						.filter((x) => x.text != null && x.text.length > 0 && x.value != null && x.value.length > 0)
-						.sort((a, b) => (a.text || "").localeCompare(b.text))
-				);
-
-				let all_status = new Set<string>();
-				res.jobs.forEach((x: any) => { all_status.add(x.status); });
-				setAllStatus(
-					Array.from(all_status).map((x: string) => {
-						return { text: WAYNIUM_statut_id_to_string(x), value: x }
-					})
-						.filter((x) => x.text != null && x.text.length > 0 && x.value != null && x.value.length > 0)
-						.sort((a, b) => (a.text || "").localeCompare(b.text))
-				);
-
-				console.log({ all_clients, all_services, all_partners })
-
-				return {
-					total: res.count,
-					list: res.jobs,
-				}
-			});
-	}
-
-	const {
-		tableProps,
-		refresh
-	} = useAntdTable(getTableData, {
-		refreshOnWindowFocus: false,
-		defaultPageSize: 100,
-	})
-
-	const filter_dropdown = (props: { setSelectedKeys: (keys: string[]) => void, confirm: () => void }) => {
-		return (<>
-			<input type="text" onChange={(e) => {
-				props.setSelectedKeys(e.target.value ? [e.target.value] : []);
-			}} />
-			<Button onClick={() => {
-				props.confirm();
-			}}>ok
-			</Button>
-		</>);
-	}
-
-	const CheckboxGroup = Checkbox.Group;
-
-	const FilterDropdownCheckboxes = (props: { choices: any[], type: string, setSelectedKeys: (keys: string[]) => void, confirm: () => void }) => {
-
-		const [checkedList, setCheckedList] = useState<CheckboxValueType[]>([]);
-		const checkAll = props.choices.length === checkedList.length;
-		const indeterminate = checkedList.length > 0 && checkedList.length < props.choices.length;
-
-		const onCheckAllChange = (e: CheckboxChangeEvent) => {
-			setCheckedList(e.target.checked ? props.choices.map(e => e.value) : []);
-		};
-
-		const [search, setSearch] = useState<string>("");
-
-		return (<>
-			<div style={{ margin: 10 }}>
-				<Title level={3}>
-					Liste des {props.type}
-				</Title>
-				<div style={{ margin: "5px", padding: 10, maxHeight: 400, overflowY: "auto" }}>
-
-					<Input.Search
-						placeholder="Rechercher"
-						allowClear
-						onChange={(e) => {
-							setSearch(e.target.value);
-						}}
-					></Input.Search>
-					<Divider />
-					{search.length == 0 &&
-						<>
-							<Checkbox
-								indeterminate={indeterminate}
-								onChange={onCheckAllChange}
-								checked={checkAll}
-							>
-								Selectionner tous les {props.type}
-							</Checkbox>
-							<Divider />
-						</>
-					}
-					<CheckboxGroup
-						style={{ display: "flex", flexDirection: "column" }}
-						value={checkedList}
-						options={props.choices.map(e => {
-							return {
-								value: e.value,
-								label: e.text,
-								style: {
-									display: search.length > 0 && !e.text.toLowerCase().includes(search.toLowerCase()) ? "none" : ""
-								}
-							} as CheckboxOptionType
-						})}
-						onChange={(checkedValues) => {
-							setCheckedList(checkedValues);
-							props.setSelectedKeys(checkedValues.map(x => x as string));
-						}}
-					/>
-				</div>
-				<Button
-					style={{ right: 0 }}
-					type={"primary"} onClick={() => {
-						props.confirm();
-					}}>Valider</Button>
-			</div>
-		</>);
-	}
 
 	const render_address = (t: string, _: any) => {
 
@@ -323,6 +157,10 @@ export default function X() {
 	}
 
 	const columns: ColumnsType<DataType> = [
+		// {
+		// 	title: 'id',
+		// 	dataIndex: 'id',
+		// },
 		{
 			title: 'Date de début',
 			dataIndex: 'date_start',
@@ -330,7 +168,7 @@ export default function X() {
 			render: (_, r) => {
 				return <div style={{ textAlign: "right" }}>{dayjs(r.date_start).format("DD/MM/YYYY HH:mm")}</div>
 			},
-			filterDropdown: filter_dropdown,
+			// filterDropdown: filter_dropdown,
 			sorter: (a, b) => dayjs(a.date_start).unix() - dayjs(b.date_start).unix(),
 		},
 		{
@@ -340,43 +178,45 @@ export default function X() {
 			render: (_, r) => {
 				return <div style={{ textAlign: "right" }}>{dayjs(r.date_end).format("DD/MM/YYYY HH:mm")}</div>
 			},
-			filterDropdown: filter_dropdown,
+			// filterDropdown: filter_dropdown,
 			sorter: (a, b) => dayjs(a.date_end).unix() - dayjs(b.date_end).unix(),
 		},
 		{
 			title: 'Dossier',
 			dataIndex: 'folder_id',
 			key: 'folder_id',
-			filterDropdown: filter_dropdown,
 			sorter: (a, b) => a.folder_id.localeCompare(b.folder_id),
+			filters: unique(allMissions.map((x) => ({ text: x.folder_id, value: x.folder_id }))),
+			onFilter: (value, record) => record.folder_id.indexOf(value as string) === 0,
 		},
 		{
 			title: 'Type de véhicule',
 			dataIndex: 'vehicle_type',
 			key: 'vehicle_type',
 			render: (t) => <>{WAYNIUM_vehiculetype_id_to_string(t)}</>,
-			filterDropdown: filter_dropdown,
+			sorter: (a, b) => a.folder_id.localeCompare(b.folder_id),
+			filters: unique(allMissions.map((x) => ({ text: WAYNIUM_vehiculetype_id_to_string(x.vehicle_type), value: x.vehicle_type }))),
 		},
 		{
 			title: 'Type de service',
 			dataIndex: 'service_type',
 			render: (t) => <>{WAYNIUM_servicetype_id_to_string(t)}</>,
-			filterDropdown: (props) => <FilterDropdownCheckboxes
-				choices={allServices}
-				type={"services"}
-				setSelectedKeys={props.setSelectedKeys}
-				confirm={props.confirm}
-			/>
+			// filterDropdown: (props) => <FilterDropdownCheckboxes
+			// 	choices={allServices}
+			// 	type={"services"}
+			// 	setSelectedKeys={props.setSelectedKeys}
+			// 	confirm={props.confirm}
+			// />
 		},
 		{
 			title: 'Client',
 			dataIndex: 'client',
-			filterDropdown: (props) => <FilterDropdownCheckboxes
-				choices={allClients}
-				type={"clients"}
-				setSelectedKeys={props.setSelectedKeys}
-				confirm={props.confirm}
-			/>
+			// filterDropdown: (props) => <FilterDropdownCheckboxes
+			// 	choices={allClients}
+			// 	type={"clients"}
+			// 	setSelectedKeys={props.setSelectedKeys}
+			// 	confirm={props.confirm}
+			// />
 		},
 		{
 			title: 'Partenaire',
@@ -390,24 +230,24 @@ export default function X() {
 				}
 				return <>{t.split('|')[1]}</>
 			},
-			filterDropdown: (props) => <FilterDropdownCheckboxes
-				choices={allPartners}
-				type={"partenaires"}
-				setSelectedKeys={props.setSelectedKeys}
-				confirm={props.confirm}
-			/>
+			// filterDropdown: (props) => <FilterDropdownCheckboxes
+			// 	choices={allPartners}
+			// 	type={"partenaires"}
+			// 	setSelectedKeys={props.setSelectedKeys}
+			// 	confirm={props.confirm}
+			// />
 		},
 		{
 			title: 'Chauffeur',
 			dataIndex: 'chauffeur_name',
-			filterDropdown: (props) => <FilterDropdownCheckboxes
-				choices={allChauffeurs.map((x) => ({ text: x.text, value: x.value }))}
-				type={"chauffeurs"}
-				setSelectedKeys={props.setSelectedKeys}
-				confirm={props.confirm}
-			/>,
+			// filterDropdown: (props) => <FilterDropdownCheckboxes
+			// 	choices={allChauffeurs.map((x) => ({ text: x.text, value: x.value }))}
+			// 	type={"chauffeurs"}
+			// 	setSelectedKeys={props.setSelectedKeys}
+			// 	confirm={props.confirm}
+			// />,
 			render: (t) => {
-				return t?.split("|")[1]||"Aucun"
+				return t?.split("|")[1] || "Aucun"
 			}
 		},
 		{
@@ -443,31 +283,23 @@ export default function X() {
 				return <Text>{percent.toFixed(2)} %</Text>
 			},
 			sorter: (a, b) => {
-				const p_achat_a = parseFloat(a.buying_price);
-				const p_vente_a = parseFloat(a.selling_price);
-				const percent_a = (p_vente_a - p_achat_a) / p_achat_a * 100;
-
-				const p_achat_b = parseFloat(b.buying_price);
-				const p_vente_b = parseFloat(b.selling_price);
-				const percent_b = (p_vente_b - p_achat_b) / p_achat_b * 100;
-
-				return percent_a - percent_b;
+				return parseFloat(a.profit) - parseFloat(b.profit);
 			}
 		},
 		{
 			title: 'Statut',
 			dataIndex: 'status',
-			filterDropdown: (props) => <FilterDropdownCheckboxes
-				choices={[
-					{ text: "En attente", value: "En attente" },
-					{ text: "En cours", value: "En cours" },
-					{ text: "Terminé", value: "Terminé" },
-					{ text: "Annulé", value: "Annulé" },
-				]}
-				type={"statuts"}
-				setSelectedKeys={props.setSelectedKeys}
-				confirm={props.confirm}
-			/>,
+			// filterDropdown: (props) => <FilterDropdownCheckboxes
+			// 	choices={[
+			// 		{ text: "En attente", value: "En attente" },
+			// 		{ text: "En cours", value: "En cours" },
+			// 		{ text: "Terminé", value: "Terminé" },
+			// 		{ text: "Annulé", value: "Annulé" },
+			// 	]}
+			// 	type={"statuts"}
+			// 	setSelectedKeys={props.setSelectedKeys}
+			// 	confirm={props.confirm}
+			// />,
 			render: (t) => {
 				return <>{WAYNIUM_statut_id_to_string(t)}</>
 			}
@@ -479,24 +311,47 @@ export default function X() {
 		// }
 	];
 
-	const { RangePicker } = DatePicker;
-	const { Text, Title } = Typography;
-	const dateFormat = 'YYYY/MM/DD';
 
-	const [allPartnersX, setAllPartnersX] = useState<any[]>([]);
 	useEffect(() => {
-		fetch("/api/contractors").then((res) => res.json()).then((res) => {
+
+		setLoading(true);
+
+		fetch("/api/contractors", {
+			method: "POST",
+			body: JSON.stringify({
+				start: interval_from,
+				end: interval_to,
+			}),
+		}).then((res) => res.json()).then((res) => {
 			setAllPartnersX(res);
+			setLoading(false);
 		});
-	}, []);
+
+		if (selectedPartner != "") {
+			setLoading(true);
+			fetch("/api/missions", {
+				method: "POST",
+				body: JSON.stringify({
+					start: interval_from,
+					end: interval_to,
+					partner: selectedPartner,
+				}),
+			})
+				.then((res) => {
+					console.log({ res })
+					return res.json()
+				})
+				.then((res) => {
+					setAllMissions(res.jobs);
+					setLoading(false);
+				});
+		}
+
+	}, [interval_from, interval_to, selectedPartner]);
+
+	const filterOption = (input: string, option?: { label: string; value: string }) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
 
 	return (<>
-
-		<SendToContractor
-			selectedContractors={allPartners}
-			from={new Date(interval_from)}
-			to={new Date(interval_to)}
-		/>
 
 		<div style={{ display: "flex", justifyContent: "center", marginBottom: 5 }}>
 
@@ -506,20 +361,58 @@ export default function X() {
 				onChange={(dates, dateStrings) => {
 					setInterval_from(dateStrings[0]);
 					setInterval_to(dateStrings[1]);
-					setTimeout(() => {
-						refresh();
-					}, 100);
 				}}
 			/>
 
+			<div style={{ width: 15 }}></div>
+
 			<Select
-				placeholder={"Choisissez un partenaire"}
-				onChange={() => {}}
-				options={allPartnersX.map(x => ({value: x.id, label: x.name}))}
+				showSearch
+				placeholder={"Choisissez un partenaire (" + allPartnersX.length + ")"}
+				onChange={(e) => { console.log({ e }); setSelectedPartner(e); }}
+				options={allPartnersX.map(x => ({ value: x.id, label: x.name }))}
+				filterOption={filterOption}
 			/>
 
 		</div>
-		<Table columns={columns} rowKey="email" {...tableProps} />
+
+
+		<Table
+			pagination={{ pageSize: 100, hideOnSinglePage: true }}	
+			loading={loading}
+			columns={columns}
+			rowKey="id"
+			dataSource={allMissions}
+			rowSelection={{
+				type: "checkbox",
+				onChange: (selectedRowKeys, selectedRows) => {
+					setSelected(selectedRows);
+				}
+			}}
+			locale={{
+				filterConfirm: "OK",
+			}}
+		/>
+
+		<div style={{ display: "flex", justifyContent: "space-between", marginTop: 15 }}>
+
+			<div>
+				<Text>Nombre de missions : {allMissions.length}</Text>
+			</div>
+
+			<div>
+				<Text>Nombre de missions sélectionnées : {selected.length}</Text>
+			</div>
+
+			<Button
+				type={"primary"}
+				onClick={() => {
+					console.log({ selected })
+				}}
+			>
+				Exporter
+			</Button>
+		</div>
 
 	</>
 	);
