@@ -196,46 +196,23 @@ export default function X() {
 			render: (t) => <>{WAYNIUM_vehiculetype_id_to_string(t)}</>,
 			sorter: (a, b) => a.folder_id.localeCompare(b.folder_id),
 			filters: unique(allMissions.map((x) => ({ text: WAYNIUM_vehiculetype_id_to_string(x.vehicle_type), value: x.vehicle_type }))),
+			onFilter: (value, record) => record.vehicle_type.indexOf(value as string) === 0,
 		},
 		{
 			title: 'Type de service',
 			dataIndex: 'service_type',
 			render: (t) => <>{WAYNIUM_servicetype_id_to_string(t)}</>,
-			// filterDropdown: (props) => <FilterDropdownCheckboxes
-			// 	choices={allServices}
-			// 	type={"services"}
-			// 	setSelectedKeys={props.setSelectedKeys}
-			// 	confirm={props.confirm}
-			// />
+			sorter: (a, b) => a.folder_id.localeCompare(b.folder_id),
+			filters: unique(allMissions.map((x) => ({ text: WAYNIUM_servicetype_id_to_string(x.service_type), value: x.service_type }))),
+			onFilter: (value, record) => record.service_type.indexOf(value as string) === 0,
 		},
 		{
 			title: 'Client',
 			dataIndex: 'client',
-			// filterDropdown: (props) => <FilterDropdownCheckboxes
-			// 	choices={allClients}
-			// 	type={"clients"}
-			// 	setSelectedKeys={props.setSelectedKeys}
-			// 	confirm={props.confirm}
-			// />
-		},
-		{
-			title: 'Partenaire',
-			dataIndex: 'partner_id',
-			render: (t) => {
-
-				const [partner_id, partner_name] = t.split('|');
-
-				if (partner_id == "null") {
-					return <Text type={"danger"}>Aucun !</Text>
-				}
-				return <>{t.split('|')[1]}</>
-			},
-			// filterDropdown: (props) => <FilterDropdownCheckboxes
-			// 	choices={allPartners}
-			// 	type={"partenaires"}
-			// 	setSelectedKeys={props.setSelectedKeys}
-			// 	confirm={props.confirm}
-			// />
+			render: (t) => <>{t}</>,
+			sorter: (a, b) => a.folder_id.localeCompare(b.folder_id),
+			filters: unique(allMissions.map((x) => ({ text: x.client, value: x.client }))),
+			onFilter: (value, record) => record.client.indexOf(value as string) === 0,
 		},
 		{
 			title: 'Chauffeur',
@@ -248,12 +225,16 @@ export default function X() {
 			// />,
 			render: (t) => {
 				return t?.split("|")[1] || "Aucun"
-			}
+			},
+			sorter: (a, b) => a.chauffeur_name.localeCompare(b.chauffeur_name),
+			filters: unique(allMissions.map((x) => ({ text: x.chauffeur_name, value: x.chauffeur_name }))),
+			onFilter: (value, record) => record.chauffeur_name.indexOf(value as string) === 0,
 		},
 		{
 			title: 'Adresse de prise en charge',
 			dataIndex: 'pickup_address',
 			render: render_address,
+			sorter: (a, b) => a.pickup_address.localeCompare(b.pickup_address),
 		},
 		{
 			title: 'Adresse de dépose',
@@ -289,20 +270,12 @@ export default function X() {
 		{
 			title: 'Statut',
 			dataIndex: 'status',
-			// filterDropdown: (props) => <FilterDropdownCheckboxes
-			// 	choices={[
-			// 		{ text: "En attente", value: "En attente" },
-			// 		{ text: "En cours", value: "En cours" },
-			// 		{ text: "Terminé", value: "Terminé" },
-			// 		{ text: "Annulé", value: "Annulé" },
-			// 	]}
-			// 	type={"statuts"}
-			// 	setSelectedKeys={props.setSelectedKeys}
-			// 	confirm={props.confirm}
-			// />,
 			render: (t) => {
 				return <>{WAYNIUM_statut_id_to_string(t)}</>
-			}
+			},
+			sorter: (a, b) => a.status.localeCompare(b.status),
+			filters: unique(allMissions.map((x) => ({ text: WAYNIUM_statut_id_to_string(x.status), value: x.status }))),
+			onFilter: (value, record) => record.status.indexOf(value as string) === 0,
 		}
 		// ,
 		// {
@@ -324,11 +297,13 @@ export default function X() {
 			}),
 		}).then((res) => res.json()).then((res) => {
 			setAllPartnersX(res);
-			setLoading(false);
+			
+			if(selectedPartner == "") {
+				setLoading(false);
+			}
 		});
 
 		if (selectedPartner != "") {
-			setLoading(true);
 			fetch("/api/missions", {
 				method: "POST",
 				body: JSON.stringify({
@@ -378,7 +353,7 @@ export default function X() {
 
 
 		<Table
-			pagination={{ pageSize: 100, hideOnSinglePage: true }}	
+			pagination={{ pageSize: 200, hideOnSinglePage: true }}	
 			loading={loading}
 			columns={columns}
 			rowKey="id"
