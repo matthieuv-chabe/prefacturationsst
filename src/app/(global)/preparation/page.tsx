@@ -5,7 +5,8 @@ import {
 	DatePicker,
 	Select,
 	Table,
-	Typography
+	Typography,
+	notification
 } from 'antd';
 import React, { useState, useEffect } from "react";
 import { ColumnsType } from "antd/es/table";
@@ -15,7 +16,7 @@ import {
 	WAYNIUM_statut_id_to_string,
 	WAYNIUM_vehiculetype_id_to_string
 } from "@/business/waynium";
-import { FilterDropdownCheckboxes } from './fdc';
+import { NotificationPlacement } from 'antd/es/notification/interface';
 
 type SetValue<T> = (newValue: T | ((prevValue: T) => T)) => void;
 
@@ -131,8 +132,6 @@ export default function X() {
 	const [loading, setLoading] = useState<boolean>(false);
 	const [selected, setSelected] = useState<string[]>([]);
 
-	const [filter_folder_id, setFilter_folder_id] = useState<string[]>([]);
-
 
 	const render_address = (t: string, _: any) => {
 
@@ -240,6 +239,7 @@ export default function X() {
 			title: 'Adresse de dépose',
 			dataIndex: 'dropoff_address',
 			render: render_address,
+			sorter: (a, b) => a.dropoff_address.localeCompare(b.dropoff_address),
 		},
 		{
 			title: 'Prix d\'achat TTC',
@@ -326,6 +326,15 @@ export default function X() {
 
 	const filterOption = (input: string, option?: { label: string; value: string }) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
 
+	const [api, contextHolder] = notification.useNotification();
+	const openNotification = (placement: NotificationPlacement) => {
+		api.info({
+		  message: `Notification ${placement}`,
+		  description: "Done !",
+		  placement,
+		});
+	  };
+
 	return (<>
 
 		<div style={{ display: "flex", justifyContent: "center", marginBottom: 5 }}>
@@ -382,7 +391,14 @@ export default function X() {
 			<Button
 				type={"primary"}
 				onClick={() => {
-					console.log({ selected })
+					fetch("/api/sendToContractor", {
+						method: "POST",
+						body: JSON.stringify({
+							missions: selected,
+						}),
+					}).then(e => {
+						openNotification("topRight");
+					});
 				}}
 			>
 				Exporter
