@@ -91,6 +91,11 @@ class CSalesforce {
             body: type != "GET" ? JSON.stringify(body) : undefined,
         }).then(async response => {
             const text = await response.text();
+            
+            if(type == "PATCH") {
+                return "";
+            }
+
             return JSON.parse(text);
         })
         return result;
@@ -120,7 +125,7 @@ class CSalesforce {
             }
         }
 
-        if(!result.done) {
+        if(!result.done && type != "PATCH") {
             result.next = async () => {
                 return await this.call(result.nextRecordsUrl, type, body, true);
             }

@@ -8,11 +8,15 @@ export async function POST(request: NextRequest) {
     console.log("POST /api/validateContractor")
 
     // In body
-    const body = await request.json() as DataType[];
+    const body = await request.json() as {missions:DataType[]};
 
-    for(let i = 0; i < body.length; i++) {
+    console.log({body})
 
-        const mission = body[i];
+    for(let i = 0; i < body.missions.length; i++) {
+
+        const mission = body.missions[i];
+        console.log("Mission " + mission.id + " " + (i+1) + "/" + body.missions.length);
+
         const missionId = mission.id;
         await Salesforce.update("Job__c", missionId, { Transmitted_To_Partner__c: "sent"})
     }
