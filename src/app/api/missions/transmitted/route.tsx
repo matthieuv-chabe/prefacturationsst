@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const date_end = body.end;
     const partner = body.partner;
 
-    const sf = await SalesforceChabe.getMissionsBetweenDates(
+    const sf = await SalesforceChabe.getSentMissionsBetweenDates(
         new Date(date_start), new Date(date_end), partner
     );
 

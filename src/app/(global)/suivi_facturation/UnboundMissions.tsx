@@ -137,6 +137,7 @@ export default function X() {
     const [loading, setLoading] = useState<boolean>(false);
     const [selected, setSelected] = useState<string[]>([]);
 
+    const [forceReload, setForceReload] = useState<number>(0);
 
     const render_address = (t: string, _: any) => {
 
@@ -297,7 +298,7 @@ export default function X() {
 
         setLoading(true);
 
-        fetch("/api/contractors", {
+        fetch("/api/contractors/transmitted", {
             method: "POST",
             body: JSON.stringify({
                 start: interval_from,
@@ -330,7 +331,7 @@ export default function X() {
                 });
         }
 
-    }, [interval_from, interval_to, selectedPartner]);
+    }, [interval_from, interval_to, selectedPartner, forceReload]);
 
     const filterOption = (input: string, option?: { label: string; value: string }) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
 
@@ -438,7 +439,7 @@ export default function X() {
                             }).then(() => {
                                 message.success("Attribution réussie !");
                                 setDrawerVisible(false);
-                                // refresh();
+                                setForceReload(forceReload + 1);
                             })
                         }}
                     >
