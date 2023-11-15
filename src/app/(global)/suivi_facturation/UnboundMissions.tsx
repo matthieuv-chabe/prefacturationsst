@@ -376,6 +376,7 @@ export default function X() {
             <div style={{ width: 15 }}></div>
 
             <Button
+                disabled={selected.length === 0}
                 type={"primary"}
                 onClick={() => {
                     setDrawerVisible(true);
@@ -432,9 +433,10 @@ export default function X() {
                             fetch("/api/assignMissionToInvoice", {
                                 method: "POST",
                                 body: JSON.stringify({
-                                    // missionIds: selectedRows.map((x) => x.id),
-                                    // invoice: contractorInvoiceNum,
-                                    // sage: sageInvoiceNum,
+                                    // @ts-ignore
+                                    missionIds: selected.map((x) => x.id),
+                                    invoice: contractorInvoiceNum,
+                                    sage: sageInvoiceNum,
                                 })
                             }).then(() => {
                                 message.success("Attribution réussie !");
@@ -472,7 +474,6 @@ export default function X() {
                 />
 
                 <div style={{ height: 20 }}></div>
-
 
                 <Text>
                     Prix de la facture

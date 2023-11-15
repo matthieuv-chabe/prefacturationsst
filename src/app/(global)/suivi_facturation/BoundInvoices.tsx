@@ -285,12 +285,21 @@ export default function X() {
             sorter: (a, b) => a.status.localeCompare(b.status),
             filters: unique(allMissions.map((x) => ({ text: WAYNIUM_statut_id_to_string(x.status), value: x.status }))),
             onFilter: (value, record) => record.status.indexOf(value as string) === 0,
+        },
+        {
+            title: 'Numéro Sage',
+            dataIndex: 'Sage_Number__c',
+
+            // @ts-ignore
+            sorter: (a, b) => a.Sage_Number__c.localeCompare(b.Sage_Number__c),
+            filters: unique(allMissions.map((x) => ({ text: x.Sage_Number__c, value: x.Sage_Number__c }))),
+            // @ts-ignore
+            onFilter: (value, record) => record.Sage_Number__c.indexOf(value as string) === 0,
+        },
+        {
+            title: 'Numéro de Facture',
+            dataIndex: 'Purchase_Invoice_Number__c',
         }
-        // ,
-        // {
-        // 	title: 'Envoyé au fournisseur',
-        // 	dataIndex: 'sent_to_supplier',
-        // }
     ];
 
 

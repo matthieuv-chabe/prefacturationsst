@@ -357,6 +357,26 @@ export default function X() {
 				filterOption={filterOption}
 			/>
 
+			<div style={{ width: 15 }}></div>
+
+			<Button
+				disabled={selected.length === 0}
+				type={"primary"}
+				onClick={() => {
+					fetch("/api/sendToContractor", {
+						method: "POST",
+						body: JSON.stringify({
+							missions: selected,
+						}),
+					}).then(e => {
+						openNotification("topRight");
+						setForceUpdate(forceUpdate + 1);
+					});
+				}}
+			>
+				Exporter
+			</Button>
+
 		</div>
 
 
@@ -387,22 +407,7 @@ export default function X() {
 				<Text>Nombre de missions sélectionnées : {selected.length}</Text>
 			</div>
 
-			<Button
-				type={"primary"}
-				onClick={() => {
-					fetch("/api/sendToContractor", {
-						method: "POST",
-						body: JSON.stringify({
-							missions: selected,
-						}),
-					}).then(e => {
-						openNotification("topRight");
-						setForceUpdate(forceUpdate + 1);
-					});
-				}}
-			>
-				Exporter
-			</Button>
+
 		</div>
 
 	</>

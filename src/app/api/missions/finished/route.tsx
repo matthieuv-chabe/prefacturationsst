@@ -44,6 +44,8 @@ export async function POST(request: NextRequest) {
         status: mission.Status_ERP_ID__c,
         sent_to_supplier: mission.Purchase_Invoice_Number__c,
         client: mission.Client_Salesforce_Code__c,
+        Purchase_Invoice_Number__c: mission.Purchase_Invoice_Number__c,
+        Sage_Number__c: mission.Sage_Number__c,
     } as unknown as DataType));
 
     return NextResponse.json({count: result.length, jobs: result});

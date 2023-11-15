@@ -17,6 +17,8 @@ export async function POST(request: NextRequest) {
     for(let i = 0; i < missionIds.length; i++) {
         const missionId = missionIds[i];
 
+        console.log("missionId", missionId)
+
         await Salesforce.update("Job__c", missionId, {
             Purchase_Invoice_Number__c: invoice,
             Sage_Number__c: sage
