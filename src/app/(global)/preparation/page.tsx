@@ -133,6 +133,7 @@ export default function X() {
 	const [loading, setLoading] = useState<boolean>(false);
 	const [selected, setSelected] = useState<string[]>([]);
 
+	const [forceUpdate, setForceUpdate] = useState<number>(0);
 
 	const render_address = (t: string, _: any) => {
 
@@ -217,12 +218,6 @@ export default function X() {
 		{
 			title: 'Chauffeur',
 			dataIndex: 'chauffeur_name',
-			// filterDropdown: (props) => <FilterDropdownCheckboxes
-			// 	choices={allChauffeurs.map((x) => ({ text: x.text, value: x.value }))}
-			// 	type={"chauffeurs"}
-			// 	setSelectedKeys={props.setSelectedKeys}
-			// 	confirm={props.confirm}
-			// />,
 			render: (t) => {
 				return t?.split("|")[1] || "Aucun"
 			},
@@ -326,7 +321,7 @@ export default function X() {
 				});
 		}
 
-	}, [interval_from, interval_to, selectedPartner]);
+	}, [interval_from, interval_to, selectedPartner, forceUpdate]);
 
 	const filterOption = (input: string, option?: { label: string; value: string }) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
 
@@ -402,6 +397,7 @@ export default function X() {
 						}),
 					}).then(e => {
 						openNotification("topRight");
+						setForceUpdate(forceUpdate + 1);
 					});
 				}}
 			>
