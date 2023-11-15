@@ -17,6 +17,8 @@ import {
 	WAYNIUM_vehiculetype_id_to_string
 } from "@/business/waynium";
 import { NotificationPlacement } from 'antd/es/notification/interface';
+import {PageParams} from "@/app/rlv/page";
+import {domainToASCII} from "url";
 
 type SetValue<T> = (newValue: T | ((prevValue: T) => T)) => void;
 
@@ -363,15 +365,15 @@ export default function X() {
 				disabled={selected.length === 0}
 				type={"primary"}
 				onClick={() => {
-					fetch("/api/sendToContractor", {
-						method: "POST",
-						body: JSON.stringify({
-							missions: selected,
-						}),
-					}).then(e => {
-						openNotification("topRight");
-						setForceUpdate(forceUpdate + 1);
-					});
+
+					// @ts-ignore
+					let data: PageParams = {};
+					data.from = interval_from;
+					data.to = interval_to;
+					// @ts-ignore
+					data.missions = selected;
+
+					window.open("/rlv?p=" + btoa(JSON.stringify(data)), "_blank");
 				}}
 			>
 				Exporter

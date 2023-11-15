@@ -4,35 +4,35 @@ import React from "react";
 import {NoSSR} from "next/dist/shared/lib/lazy-dynamic/dynamic-no-ssr";
 
 import "./style.css"
-import {Button} from "antd";
+import {Button, notification} from "antd";
 import {useRouter} from "next/navigation";
+import {WAYNIUM_servicetype_id_to_string, WAYNIUM_vehiculetype_id_to_string} from "@/business/waynium";
 
-export type FactureParams = {
-    id: string;
-    date: string;
-    client_name: string;
-    ttc: string;
-
-    com_part: ComParam[]
+export interface Root {
+    from: string
+    to: string
+    missions: Mission[]
 }
 
-export type ComParam = {
-    type: "voiture" | "service" | "frais" | "accueil",
-    base_commisionable: number,
-    com_rate: number,
-    com_amount: number,
+export interface Mission {
+    id: string
+    date_start: string
+    date_end: string
+    folder_id: string
+    vehicle_type: string
+    service_type: string
+    partner_id: string
+    chauffeur_name: string
+    pickup_address: string
+    dropoff_address: string
+    buying_price: number
+    selling_price: number
+    profit: number
+    status: string
+    sent_to_supplier: any
+    client: string
 }
 
-export type PageParams = {
-    hotel: {
-        name: string;
-        address: string;
-        city: string;
-        tva: string;
-    }
-
-    factures: FactureParams[]
-};
 
 const X = () => {
 
@@ -46,73 +46,9 @@ const X = () => {
     const isForDemo = true;
     const urlParams = new URLSearchParams((typeof window !== "undefined" && window?.location?.search) || "https://google.com");
 
-    let data: PageParams = {
-        factures: [],
-        hotel: {
-            address: "",
-            city: "",
-            name: "",
-            tva: ""
-        }
-    };
+    const data = JSON.parse(atob(urlParams.get("p")!)) as Root;
 
-    if (urlParams.has("p") || urlParams.has("t")) {
-        if (urlParams.has("t")) {
-            const one_fac: FactureParams = {
-                id: "FPA123456879",
-                date: "2021-01-01",
-                ttc: "1000€",
-                client_name: "LUTETIA",
-                com_part: [
-                    {
-                        type: "voiture",
-                        base_commisionable: 1000,
-                        com_rate: 0.5,
-                        com_amount: 500,
-                    },
-                    {
-                        type: "service",
-                        base_commisionable: 1000,
-                        com_rate: 0.5,
-                        com_amount: 500,
-                    }
-                ]
-            }
-
-            const data_to_write: PageParams = {
-
-                hotel: {
-                    name: 'Hotel Lutecia',
-                    address: 'Rua de Arroios, 23',
-                    city: 'Lisboa',
-                    tva: 'PT123456789',
-                },
-
-                factures: [
-                    one_fac,
-                    one_fac,
-                    one_fac,
-                    one_fac,
-                    one_fac,
-                    one_fac,
-                ],
-
-            };
-
-            data = data_to_write;
-        } else {
-            data = JSON.parse(urlParams.get("p")!) as PageParams;
-            console.log("p=", data)
-        }
-    }
-
-
-    const sum_of_com = data.factures.reduce((acc, facture) => {
-        return acc + facture.com_part.reduce((acc2, com_part) => {
-            return acc2 + com_part.com_amount
-        }, 0)
-    }, 0);
-
+    const sum = data.missions.reduce((acc, mission) => acc + mission.buying_price, 0);
 
     return (<>
         <div
@@ -127,58 +63,23 @@ const X = () => {
                 bottom: 0,
                 display: 'flex',
                 justifyContent: 'center',
-                alignItems: isForDemo ? 'center' : 'left',
+                // alignItems: isForDemo ? 'center' : 'left',
                 flexDirection: 'column',
-                boxShadow: isForDemo ? '5px' : '0',
+                // boxShadow: isForDemo ? '5px' : '0',
                 overflow: 'auto'
             }}
         >
 
 
             <div style={{
-                position: 'relative',
+                // position: 'absolute',
+                // top: 0,
                 printColorAdjust: 'exact',
                 backgroundColor: 'white',
-                width: '21cm',
-                height: '29.7cm',
-                boxShadow: isForDemo ? 'rgba(22, 18, 18, 1) 0px 0px 10px 10px' : '0'
+                width: '100%',
+                // boxShadow: isForDemo ? 'rgba(22, 18, 18, 1) 0px 0px 10px 10px' : '0',
+                // top: 100
             }}>
-
-                <div style={{
-                    printColorAdjust: 'exact',
-                    marginLeft: '1cm',
-                    marginTop: '1cm'
-                }}>
-
-                    <p style={{
-                        printColorAdjust: 'exact',
-                        fontFamily: 'Arial, Helvetica, sans-serif'
-                    }}>
-
-                        <b>HOTEL {data.hotel.name}</b><br/>
-                        {data.hotel.address}<br/>
-                        {data.hotel.city}<br/>
-                        {data.hotel.tva}<br/>
-                    </p>
-
-                </div>
-
-                <div style={{
-                    printColorAdjust: 'exact',
-                    margin: '1cm'
-                }}>
-
-                    <p style={{
-                        printColorAdjust: 'exact',
-                        fontFamily: 'Arial, Helvetica, sans-serif',
-                        textAlign: 'right'
-                    }}>
-                        <b>CHABE</b><br/>
-                        91-99 Av. Jules Quentin<br/>
-                        92000 Nanterre, France<br/>
-                        TVA INTRA FR 35 314 613 720<br/>
-                    </p>
-                </div>
 
                 <div style={{
                     printColorAdjust: 'exact',
@@ -197,9 +98,10 @@ const X = () => {
                             backgroundColor: '#061E3A',
                             color: 'white',
                             fontFamily: 'Arial, Helvetica, sans-serif',
-                            textAlign: 'center'
+                            textAlign: 'center',
+                            fontSize: 'large'
                         }}>
-                            FACTURE DE COMMISSION EN EUROS
+                            MISSIONS DE {data.missions[0].partner_id.split('|')[1]} DU {new Date(data.from).toLocaleDateString()} AU {new Date(data.to).toLocaleDateString()}
                         </p>
                     </div>
 
@@ -208,200 +110,83 @@ const X = () => {
                             printColorAdjust: 'exact',
                             fontFamily: 'Arial, Helvetica, sans-serif'
                         }}>
-                            Facture du {new Date().toLocaleDateString()}
+                            MONTANT : <b style={{color: '#DE2B4E'}}>{str_to_price(""+sum)}</b>
                         </p>
                     </div>
 
                     <div>
                         <table style={{width: "100%"}}>
                             <thead>
-                            <tr style={{
-                                printColorAdjust: 'exact',
-                                fontSize: 'small',
-                                padding: '2px',
-                                color: 'white',
-                                fontFamily: 'Arial, Helvetica, sans-serif',
-                                textAlign: 'center',
-                                backgroundColor: '#061E3A'
-                            }}>
+                                <tr style={{
+                                    printColorAdjust: 'exact',
+                                    fontSize: 'small',
+                                    padding: '2px',
+                                    color: 'white',
+                                    fontFamily: 'Arial, Helvetica, sans-serif',
+                                    textAlign: 'center',
+                                    backgroundColor: '#061E3A'
+                                }}>
 
-                                <th>N. Facture<br/>Chabé</th>
-                                <th>Date Facture<br/>Chabé</th>
-                                <th>Référence<br/>Chabé</th>
-                                <th>Montant<br/>TTC</th>
-                                <th>Base<br/>commissionnable<br/>HT</th>
-                                <th>Taux<br/>commission</th>
-                                <th>Montant<br/>commission<br/>HT</th>
-                            </tr>
+                                    <th>Date de Début</th>
+                                    <th>Date de Fin</th>
+                                    <th>Type de Service</th>
+                                    <th>Client</th>
+                                    <th>Adresse départ</th>
+                                    <th>Adresse arrivée</th>
+                                    <th>Chauffeur</th>
+                                    <th>Véhicule</th>
+                                    <th>Prix d{"'"}achat TTC</th>
+                                </tr>
                             </thead>
                             <tbody>
 
                             {
-                                data.factures.map((facture, index) => {
+                                data.missions.map((mission, index) => {
                                     return (
                                         <>
-                                            {facture.com_part.map((com_part, index2) => {
-                                                return (
-                                                    <tr
-                                                        key={index * 1e9 + index2}
-                                                        style={{
-                                                            borderBottom: index2 === facture.com_part.length - 1 ? 'solid #061E3A 4px' : 'none'
-                                                        }}
-                                                    >
-                                                        {index2 === 0 &&
-                                                            <>
-                                                                <td rowSpan={facture.com_part.length}>
-                                                                    {facture.id}
-                                                                </td>
-                                                                <td rowSpan={facture.com_part.length}>
-                                                                    {facture.date}
-                                                                </td>
-                                                                <td rowSpan={facture.com_part.length}>
-                                                                    {facture.client_name}
-                                                                </td>
-                                                                <td
-                                                                    rowSpan={facture.com_part.length}
-                                                                    style={{
-                                                                        printColorAdjust: 'exact',
-                                                                        textAlign: 'right',
-                                                                        verticalAlign: 'middle'
-                                                                    }}>
-                                                                    {str_to_price("" + facture.ttc)}
-                                                                </td>
-                                                            </>
-                                                        }
+                                            <tr>
 
-                                                        <td style={{
-                                                            printColorAdjust: 'exact',
-                                                            textAlign: 'right'
-                                                        }}>
-                                                            {str_to_price("" + com_part.base_commisionable)}
-                                                        </td>
-                                                        <td style={{
-                                                            printColorAdjust: 'exact',
-                                                            textAlign: 'right'
-                                                        }}>
-                                                            {com_part.com_rate * 100} %
-                                                        </td>
-                                                        <td style={{
-                                                            printColorAdjust: 'exact',
-                                                            textAlign: 'right',
-                                                        }}>
-                                                            {str_to_price("" + com_part.com_amount)}
-                                                        </td>
-                                                    </tr>
-                                                )
-                                            })}
+                                                <td>
+                                                    {new Date(mission.date_start).toLocaleDateString()}
+                                                </td>
+
+                                                <td>
+                                                    {new Date(mission.date_end).toLocaleDateString()}
+                                                </td>
+
+                                                <td>
+                                                    {WAYNIUM_servicetype_id_to_string(mission.service_type)}
+                                                </td>
+
+                                                <td>
+                                                    {mission.client}
+                                                </td>
+
+                                                <td>
+                                                    {mission.pickup_address}
+                                                </td>
+
+                                                <td>
+                                                    {mission.dropoff_address}
+                                                </td>
+
+                                                <td>
+                                                    {mission.chauffeur_name}
+                                                </td>
+
+                                                <td>
+                                                    {WAYNIUM_vehiculetype_id_to_string(mission.vehicle_type)}
+                                                </td>
+
+                                                <td style={{textAlign: "right"}}>
+                                                    {str_to_price(""+mission.buying_price)}
+                                                </td>
+                                            </tr>
                                         </>
                                     )
                                 })
                             }
 
-                            <tr style={{
-                                printColorAdjust: 'exact',
-                                fontFamily: 'Arial, Helvetica, sans-serif',
-                                border: 'none',
-                                borderLeft: 'solid white 4px',
-                                borderRight: 'solid white 2px',
-                            }}>
-                                <td colSpan={4} style={{border: 'none',}}></td>
-                                <td style={{border: 'none'}}></td>
-                                <td style={{border: 'none'}}></td>
-                                <td style={{
-                                    printColorAdjust: 'exact',
-                                    borderTop: 'solid #061E3A 4px !important',
-                                    textAlign: 'right',
-                                    border: 'none',
-                                }}>
-                                    <b style={{textAlign: "right"}}>
-                                        {str_to_price("" + sum_of_com)}
-                                    </b>
-                                </td>
-                            </tr>
-
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div style={{
-                        printColorAdjust: 'exact',
-                        display: 'flex',
-                        flexDirection: 'row-reverse',
-                        marginTop: '2cm'
-                    }}>
-
-                        <table>
-                            <thead></thead>
-                            <tbody>
-                            <tr>
-                                <td style={{
-                                    printColorAdjust: 'exact',
-                                    padding: '2px',
-                                    fontFamily: 'Arial, Helvetica, sans-serif',
-                                    fontSize: 'small',
-                                    backgroundColor: '#061E3A',
-                                    color: 'white'
-                                }}>
-                                    <p>
-                                        <b>
-                                            TOTAL HT
-                                        </b>
-                                    </p>
-                                </td>
-                                <td style={{
-                                    printColorAdjust: 'exact',
-                                    fontFamily: 'Arial, Helvetica, sans-serif',
-                                    textAlign: 'right'
-                                }}>
-                                    {str_to_price("" + sum_of_com)}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style={{
-                                    printColorAdjust: 'exact',
-                                    padding: '2px',
-                                    fontFamily: 'Arial, Helvetica, sans-serif',
-                                    fontSize: 'small',
-                                    backgroundColor: '#061E3A',
-                                    color: 'white'
-                                }}>
-                                    <p>
-                                        <b>
-                                            TVA 20%
-                                        </b>
-                                    </p>
-                                </td>
-                                <td style={{
-                                    printColorAdjust: 'exact',
-                                    fontFamily: 'Arial, Helvetica, sans-serif',
-                                    textAlign: 'right'
-                                }}>
-                                    {str_to_price("" + sum_of_com * 0.2)}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style={{
-                                    padding: '2px',
-                                    printColorAdjust: 'exact',
-                                    fontFamily: 'Arial, Helvetica, sans-serif',
-                                    fontSize: 'small',
-                                    backgroundColor: '#061E3A',
-                                    color: 'white'
-                                }}>
-                                    <p>
-                                        <b>
-                                            TOTAL TTC
-                                        </b>
-                                    </p>
-                                </td>
-                                <td style={{
-                                    printColorAdjust: 'exact',
-                                    fontFamily: 'Arial, Helvetica, sans-serif',
-                                    textAlign: 'right'
-                                }}>
-                                    {str_to_price("" + sum_of_com * 1.2)}
-                                </td>
-                            </tr>
                             </tbody>
                         </table>
                     </div>
@@ -417,10 +202,48 @@ const X = () => {
 }
 
 const Page = () => {
+
+    const openNotification = (placement: any) => {
+        notification.info({
+            message: `Relevé envoyé au sous-traitant`,
+            placement,
+        });
+    }
+
+    const urlParams = new URLSearchParams((typeof window !== "undefined" && window?.location?.search) || "https://google.com");
+    let data: Root = {}
+
+    try {
+        data = JSON.parse(atob(urlParams.get("p")!)) as Root;
+    } catch (e) {
+        return <></>
+    }
+
     return (<NoSSR>
         <>
             <X/>
-            <Button className={"noprint"} type={"primary"}>Envoyer la facture à l{"'"}hôtel</Button>
+            <Button
+                className={"noprint"}
+                type={"primary"}
+                onClick={() => {
+                    fetch("/api/sendToContractor", {
+                    	method: "POST",
+                    	body: JSON.stringify({
+                    		missions: urlParams.get("p")!,
+                    	}),
+                    }).then(e => {
+                    	openNotification("topRight");
+                    });
+                }}
+            >
+                Envoyer le relevé au sous-traitant
+            </Button>
+            <Button
+                className={"noprint"}
+                style={{marginLeft: 10}}
+            >
+                Le sous-traitant a déjà envoyé sa facture
+            </Button>
         </>
     </NoSSR>)
 }
