@@ -211,7 +211,7 @@ const Page = () => {
     }
 
     const urlParams = new URLSearchParams((typeof window !== "undefined" && window?.location?.search) || "https://google.com");
-    let data: Root = {}
+    let data: Root = {to: "", from: "", missions: []}
 
     try {
         data = JSON.parse(atob(urlParams.get("p")!)) as Root;
