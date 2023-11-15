@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     const start = new Date(body.start)
     const end = new Date(body.end)
 
-    if(!start || !end) return NextResponse.error(new Error("Missing start or end date"))
+    if(!start || !end) return NextResponse.error()
 
     console.log({s:start.toISOString(), e:end.toISOString()})
 
