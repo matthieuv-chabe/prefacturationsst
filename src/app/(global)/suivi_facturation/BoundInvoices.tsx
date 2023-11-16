@@ -269,7 +269,7 @@ export default function X() {
                 const p_achat = parseFloat(obj.buying_price);
                 const p_vente = parseFloat(obj.selling_price);
 
-                const percent = (p_vente - p_achat) / p_achat * 100;
+                const percent = (p_vente - p_achat) / p_vente * 100;
                 return <Text>{percent.toFixed(2)} %</Text>
             },
             sorter: (a, b) => {

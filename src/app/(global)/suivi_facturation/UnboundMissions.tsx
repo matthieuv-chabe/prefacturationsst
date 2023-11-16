@@ -128,7 +128,7 @@ export default function X() {
     const [interval_to, setInterval_to] = useURLState<string>("it", "2023-01-01");
 
     const { RangePicker } = DatePicker;
-    const { Text, Title } = Typography;
+    const { Paragraph, Text, Title } = Typography;
     const dateFormat = 'YYYY-MM-DD';
 
     const [allPartnersX, setAllPartnersX] = useState<any[]>([]);
@@ -269,7 +269,7 @@ export default function X() {
                 const p_achat = parseFloat(obj.buying_price);
                 const p_vente = parseFloat(obj.selling_price);
 
-                const percent = (p_vente - p_achat) / p_achat * 100;
+                const percent = (p_vente - p_achat) / p_vente * 100;
                 return <Text>{percent.toFixed(2)} %</Text>
             },
             sorter: (a, b) => {
@@ -476,10 +476,14 @@ export default function X() {
                 <div style={{ height: 20 }}></div>
 
                 <Text>
-                    Prix de la facture
+                    Montant facture
                 </Text>
+                <Paragraph type={"secondary"}>
+                    { /* @ts-ignore */ }
+                    Somme prix achat = {selected.map((x) => parseFloat(x.buying_price)).reduce((a, b) => a + b, 0).toFixed(2)} €
+                </Paragraph>
                 <Input
-                    title={"Prix de la facture"}
+                    title={"Montant facture"}
                     value={invoicePrice}
                     onChange={(e) => {
                         setInvoicePrice(e.target.value);
@@ -489,7 +493,7 @@ export default function X() {
                 <div style={{ height: 20 }}></div>
 
                 <Text>
-                    Date de la facture
+                    Date de validation
                 </Text><br />
                 <DatePicker
                     defaultValue={dayjs()}

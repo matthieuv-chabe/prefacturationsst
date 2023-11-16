@@ -259,7 +259,7 @@ export default function X() {
 				const p_achat = parseFloat(obj.buying_price);
 				const p_vente = parseFloat(obj.selling_price);
 
-				const percent = (p_vente - p_achat) / p_achat * 100;
+				const percent = (p_vente - p_achat) / p_vente * 100;
 				return <Text>{percent.toFixed(2)} %</Text>
 			},
 			sorter: (a, b) => {
@@ -376,6 +376,16 @@ export default function X() {
 			>
 				Exporter
 			</Button>
+
+			<div style={{ width: 15 }}></div>
+
+
+			<div>
+				<Text>
+					{ /* @ts-ignore */ }
+					Total prix achat : {selected.reduce((a, b) => a + parseFloat(b.buying_price), 0).toFixed(2)} €
+				</Text>
+			</div>
 
 		</div>
 

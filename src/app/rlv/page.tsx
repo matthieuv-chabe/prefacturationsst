@@ -110,7 +110,7 @@ const X = () => {
                             printColorAdjust: 'exact',
                             fontFamily: 'Arial, Helvetica, sans-serif'
                         }}>
-                            MONTANT : <b style={{color: '#DE2B4E'}}>{str_to_price(""+sum)}</b>
+                            MONTANT TTC : <b style={{color: '#DE2B4E'}}>{str_to_price(""+sum)}</b>
                         </p>
                     </div>
 
@@ -135,7 +135,7 @@ const X = () => {
                                     <th>Adresse arrivée</th>
                                     <th>Chauffeur</th>
                                     <th>Véhicule</th>
-                                    <th>Prix d{"'"}achat TTC</th>
+                                    <th>Prix TTC</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -147,11 +147,16 @@ const X = () => {
                                             <tr>
 
                                                 <td>
-                                                    {new Date(mission.date_start).toLocaleDateString()}
+                                                    {
+                                                        ""
+                                                        + new Date(mission.date_start).toLocaleDateString()
+                                                        + " "
+                                                        + new Date(mission.date_start).toLocaleTimeString()
+                                                    }
                                                 </td>
 
                                                 <td>
-                                                    {new Date(mission.date_end).toLocaleDateString()}
+                                                    {new Date(mission.date_end).toLocaleTimeString()}
                                                 </td>
 
                                                 <td>
