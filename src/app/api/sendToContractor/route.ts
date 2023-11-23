@@ -1,9 +1,8 @@
 import {NextRequest} from "next/server";
 import {Salesforce} from "@/core/salesforce";
-import {SalesforceChabe} from "@/business/SalesforceChabe";
-import { DataType } from "@/app/(global)/preparation/page";
 
 import puppeteer from "puppeteer";
+import {mailService} from "@/core/MailService";
 
 async function printPDF(url: string, path: string) {
 
@@ -67,14 +66,31 @@ export async function POST(request: NextRequest) {
     const page = "http://localhost:3000/rlv?p=" + body.missions;
     printPDF(page, "public/rlv.pdf");
 
-    // for(let i = 0; i < body.missions.length; i++) {
-    //
-    //     const mission = body.missions[i];
-    //     console.log("Mission " + mission.id + " " + (i+1) + "/" + body.missions.length);
-    //
-    //     const missionId = mission.id;
-    //     await Salesforce.update("Job__c", missionId, { Transmitted_To_Partner__c: "sent"})
-    // }
+    mailService.sendMail(
+        "noreply-event@chabe.fr",
+        "matthieu.vancayzeele@chabe.fr",
+        "Relevé de missions Chabé",
+        [
+            {path: "public/rlv.pdf", filename: "releve.pdf", contentType: "application/pdf"}
+        ],
+        "Bonjour,\n\n" +
+        "Veuillez trouver ci-joint le relevé de missions Chabé.\n\n" +
+        "Cordialement,\n" +
+        "L'équipe Chabé"
+    );
+
+    const m = JSON.parse(atob(body.missions)) as {missions: any[]};
+
+    console.log(m)
+
+    for(let i = 0; i < m.missions.length; i++) {
+
+        const mission = m.missions[i];
+        console.log("Mission " + mission.id + " " + (i+1) + "/" + m.missions.length);
+
+        const missionId = mission.id;
+        await Salesforce.update("Job__c", missionId, { Transmitted_To_Partner__c: "sent"})
+    }
 
     return {status: 200, body: "OK"};
 

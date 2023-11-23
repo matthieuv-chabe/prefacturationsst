@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, {useState} from "react";
 import {NoSSR} from "next/dist/shared/lib/lazy-dynamic/dynamic-no-ssr";
 
 import "./style.css"
@@ -34,7 +34,7 @@ export interface Mission {
 }
 
 
-const X = () => {
+const X = async () => {
 
     const router = useRouter();
 
@@ -46,9 +46,21 @@ const X = () => {
     const isForDemo = true;
     const urlParams = new URLSearchParams((typeof window !== "undefined" && window?.location?.search) || "https://google.com");
 
-    const data = JSON.parse(atob(urlParams.get("p")!)) as Root;
+    const [data, setData] = useState<Root>(JSON.parse(atob(urlParams.get("p")!)) as Root);
+    const [loading, setLoading] = useState<boolean>(true);
 
-    const sum = data.missions.reduce((acc, mission) => acc + mission.buying_price, 0);
+    new Promise((resolve) => {
+        window.addEventListener('message', (event) => {
+            resolve(event.data);
+        });
+    }).then((data) => {
+        console.log(data);
+        // @ts-ignore
+        setData(data);
+        setLoading(false);
+    });
+
+    const sum = (data as Root).missions.reduce((acc, mission) => acc + mission.buying_price, 0);
 
     return (<>
         <div
@@ -61,10 +73,10 @@ const X = () => {
                 top: 0,
                 left: 0,
                 bottom: 0,
-                display: 'flex',
-                justifyContent: 'center',
+                // display: 'flex',
+                // justifyContent: 'center',
                 // alignItems: isForDemo ? 'center' : 'left',
-                flexDirection: 'column',
+                // flexDirection: 'column',
                 // boxShadow: isForDemo ? '5px' : '0',
                 overflow: 'auto'
             }}
@@ -140,8 +152,14 @@ const X = () => {
                             </thead>
                             <tbody>
 
+                            {loading && <tr>
+                                <td colSpan={9} style={{textAlign: "center"}}>
+                                    Chargement...
+                                </td>
+                            </tr>}
+
                             {
-                                data.missions.map((mission, index) => {
+                                !loading && data.missions.map((mission, index) => {
                                     return (
                                         <>
                                             <tr>

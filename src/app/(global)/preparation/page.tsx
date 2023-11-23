@@ -362,16 +362,25 @@ export default function X() {
 			<Button
 				disabled={selected.length === 0}
 				type={"primary"}
-				onClick={() => {
+				onClick={async () => {
 
 					// @ts-ignore
 					let data: PageParams = {};
 					data.from = interval_from;
 					data.to = interval_to;
 					// @ts-ignore
-					data.missions = selected;
+					// data.missions = selected;
+					data.missions = [selected[0]]
 
-					window.open("/rlv?p=" + btoa(JSON.stringify(data)), "_blank");
+					const target = window.open("/rlv?p=" + btoa(JSON.stringify(data)), "_blank");
+					if(!target) {
+						alert("Veuillez autoriser les popups pour ce site");
+					}
+
+					// Send data to the target window
+					await new Promise((resolve) => setTimeout(resolve, 3000));
+					// @ts-ignore
+					target?.postMessage({...data, missions: selected}, "*");
 				}}
 			>
 				Exporter
