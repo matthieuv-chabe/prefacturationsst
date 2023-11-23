@@ -46,7 +46,7 @@ const X = async () => {
     const isForDemo = true;
     const urlParams = new URLSearchParams((typeof window !== "undefined" && window?.location?.search) || "https://google.com");
 
-    const [data, setData] = useState<Root>(JSON.parse(atob(urlParams.get("p")!)) as Root);
+    const [data, setData] = useState<Root>(JSON.parse(atob(urlParams.get("x")!)) as Root);
     const [loading, setLoading] = useState<boolean>(true);
 
     new Promise((resolve) => {
