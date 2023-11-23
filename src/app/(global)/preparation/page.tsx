@@ -372,7 +372,7 @@ export default function X() {
 					// data.missions = selected;
 					data.missions = [selected[0]]
 
-					const target = window.open("/rlv?x=" + btoa(JSON.stringify(data)), "_blank");
+					const target = window.open("/rlv?p=" + btoa(JSON.stringify(data)), "_blank");
 					if(!target) {
 						alert("Veuillez autoriser les popups pour ce site");
 					}
