@@ -129,6 +129,7 @@ export async function POST(request: NextRequest) {
         date_start: mission.Start_Date_Time__c,
         date_end: mission.End_Date_Time__c,
         folder_id: mission.COM_ID__c,
+        mission_id: mission.MIS_NUMERO__c,
         vehicle_type: mission.OrderedVehicleType_ERP_ID__c,
         service_type: mission.ServiceType_ERP_ID__c,
         partner_id: mission.Partner_ERP_ID__c + "|" + partner_names.find((x) => x.id == mission.Partner_ERP_ID__c)?.name,

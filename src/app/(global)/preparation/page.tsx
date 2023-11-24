@@ -71,6 +71,7 @@ export type DataType = {
 	date_start: string,
 	date_end: string,
 	folder_id: string,
+	mission_id: string,
 	vehicle_type: string,
 	service_type: string,
 	partner_id: string,
@@ -173,20 +174,26 @@ export default function X() {
 			sorter: (a, b) => dayjs(a.date_start).unix() - dayjs(b.date_start).unix(),
 		},
 		{
-			title: 'Date de fin',
+			title: 'Heure de fin',
 			dataIndex: 'date_end',
 			key: 'date_end',
 			render: (_, r) => {
-				return <div style={{ textAlign: "right" }}>{dayjs(r.date_end).format("DD/MM/YYYY HH:mm")}</div>
+				return <div style={{ textAlign: "right" }}>{dayjs(r.date_end).format("HH:mm")}</div>
 			},
 			// filterDropdown: filter_dropdown,
 			sorter: (a, b) => dayjs(a.date_end).unix() - dayjs(b.date_end).unix(),
 		},
 		{
 			title: 'Dossier',
-			dataIndex: 'folder_id',
+			// dataIndex: 'folder_id',
 			key: 'folder_id',
-			sorter: (a, b) => a.folder_id.localeCompare(b.folder_id),
+			render: (t,line) => <>{line.folder_id}-{line.mission_id}</>,
+			sorter: (a, b) => {
+				// Sort by folder_id first then by mission_id
+				const folder_id_cmp = a.folder_id.localeCompare(b.folder_id);
+				if(folder_id_cmp !== 0) return folder_id_cmp;
+				return a.mission_id.localeCompare(b.mission_id);
+			},
 			filters: unique(allMissions.map((x) => ({ text: x.folder_id, value: x.folder_id }))),
 			onFilter: (value, record) => record.folder_id.indexOf(value as string) === 0,
 		},
