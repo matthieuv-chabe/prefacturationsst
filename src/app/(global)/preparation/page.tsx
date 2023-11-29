@@ -18,6 +18,8 @@ import {
 } from "@/business/waynium";
 import { NotificationPlacement } from 'antd/es/notification/interface';
 
+import xlsx from "json-as-xlsx";
+
 type SetValue<T> = (newValue: T | ((prevValue: T) => T)) => void;
 
 function useURLState<T>(
@@ -435,6 +437,32 @@ export default function X() {
 
 
 		</div>
+			<Button
+				onClick={() => {
+					const data = [{
+						sheet: "Data",
+						columns: [
+							{label: "Date de début", value: "date_start"},
+							{label: "Heure de fin", value: "date_end"},
+							{label: "Dossier", value: "folder_id"},
+							{label: "Type de véhicule", value: "vehicle_type"},
+							{label: "Type de service", value: "service_type"},
+							{label: "Client", value: "client"},
+							{label: "Chauffeur", value: "chauffeur_name"},
+							{label: "Adresse de prise en charge", value: "pickup_address"},
+							{label: "Adresse de dépose", value: "dropoff_address"},
+							{label: "Prix d'achat TTC", value: "buying_price"},
+							{label: "Prix de vente TTC", value: "selling_price"},
+							{label: "Profit", value: "profit"},
+							{label: "Statut", value: "status"},
+						],
+						content: allMissions,
+					}];
+					xlsx( data, {
+						fileName: "missions"
+					})
+				}}
+			>Download Excel</Button>
 
 	</>
 	);
