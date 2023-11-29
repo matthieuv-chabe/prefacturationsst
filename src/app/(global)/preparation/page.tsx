@@ -442,22 +442,24 @@ export default function X() {
 					const data = [{
 						sheet: "Data",
 						columns: [
-							{label: "Date de début", value: "date_start"},
-							{label: "Heure de fin", value: "date_end"},
-							{label: "Dossier", value: "folder_id"},
-							{label: "Type de véhicule", value: "vehicle_type"},
-							{label: "Type de service", value: "service_type"},
+							{label: "Date de début", value: (row:any) => dayjs(row.date_start).format("DD/MM/YYYY HH:mm")},
+							{label: "Heure de fin", value: (row:any) => dayjs(row.date_end).format("HH:mm")},
+							{label: "ID Mission", value: (row:DataType) => (row.folder_id + "-" + row.mission_id)},
+							{label: "Type de véhicule", value: (row:DataType) => WAYNIUM_vehiculetype_id_to_string(row.vehicle_type)},
+							{label: "Type de service", value: (row:DataType) => WAYNIUM_servicetype_id_to_string(row.service_type)},
 							{label: "Client", value: "client"},
 							{label: "Chauffeur", value: "chauffeur_name"},
 							{label: "Adresse de prise en charge", value: "pickup_address"},
 							{label: "Adresse de dépose", value: "dropoff_address"},
 							{label: "Prix d'achat TTC", value: "buying_price"},
 							{label: "Prix de vente TTC", value: "selling_price"},
-							{label: "Profit", value: "profit"},
-							{label: "Statut", value: "status"},
+							{label: "Profit", value: (row:DataType) => ((parseFloat(row.selling_price) - parseFloat(row.buying_price)) / parseFloat(row.selling_price) * 100).toFixed(2) + "%"},
+							{label: "Statut", value: (row:DataType) => WAYNIUM_statut_id_to_string(row.status)},
 						],
 						content: allMissions,
 					}];
+
+					// @ts-ignore
 					xlsx( data, {
 						fileName: "missions"
 					})
