@@ -228,7 +228,7 @@ export default function X() {
 			title: 'Chauffeur',
 			dataIndex: 'chauffeur_name',
 			render: (t) => {
-				return t?.split("|")[1] || "Aucun"
+				return t?.replace("null", "")
 			},
 			sorter: (a, b) => a.chauffeur_name.localeCompare(b.chauffeur_name),
 			filters: unique(allMissions.map((x) => ({ text: x.chauffeur_name, value: x.chauffeur_name }))),
