@@ -2,7 +2,7 @@ import {NextRequest} from "next/server";
 import {Salesforce} from "@/core/salesforce";
 
 import puppeteer from "puppeteer";
-import {mailService} from "@/core/MailService";
+// import {mailService} from "@/core/MailService";
 
 async function printPDF(url: string, path: string) {
 
@@ -66,18 +66,18 @@ export async function POST(request: NextRequest) {
     const page = "http://localhost:3000/rlv?p=" + body.missions;
     printPDF(page, "public/rlv.pdf");
 
-    mailService.sendMail(
-        "noreply-event@chabe.fr",
-        "matthieu.vancayzeele@chabe.fr",
-        "Relevé de missions Chabé",
-        [
-            {path: "public/rlv.pdf", filename: "releve.pdf", contentType: "application/pdf"}
-        ],
-        "Bonjour,\n\n" +
-        "Veuillez trouver ci-joint le relevé de missions Chabé.\n\n" +
-        "Cordialement,\n" +
-        "L'équipe Chabé"
-    );
+    // mailService.sendMail(
+    //     "noreply-event@chabe.fr",
+    //     "matthieu.vancayzeele@chabe.fr",
+    //     "Relevé de missions Chabé",
+    //     [
+    //         {path: "public/rlv.pdf", filename: "releve.pdf", contentType: "application/pdf"}
+    //     ],
+    //     "Bonjour,\n\n" +
+    //     "Veuillez trouver ci-joint le relevé de missions Chabé.\n\n" +
+    //     "Cordialement,\n" +
+    //     "L'équipe Chabé"
+    // );
 
     const m = JSON.parse(atob(body.missions)) as {missions: any[]};
 
