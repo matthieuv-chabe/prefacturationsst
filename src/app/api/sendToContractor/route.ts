@@ -1,4 +1,4 @@
-import {NextRequest} from "next/server";
+import {NextRequest, NextResponse} from "next/server";
 import {Salesforce} from "@/core/salesforce";
 
 import puppeteer from "puppeteer";
@@ -92,6 +92,7 @@ export async function POST(request: NextRequest) {
         await Salesforce.update("Job__c", missionId, { Transmitted_To_Partner__c: "sent"})
     }
 
-    return {status: 200, body: "OK"};
+    return NextResponse.json("OK");
+    // return {status: 200, body: "OK"};
 
 }
