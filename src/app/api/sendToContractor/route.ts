@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     console.log(body.missions)
 
     const page = "http://localhost:3000/rlv?p=" + body.missions;
-    printPDF(page, "public/rlv.pdf");
+    // printPDF(page, "public/rlv.pdf");
 
     // mailService.sendMail(
     //     "noreply-event@chabe.fr",
