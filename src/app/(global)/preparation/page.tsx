@@ -123,15 +123,15 @@ export default function X() {
 
 
 	// Date interval
-	const [interval_from, setInterval_from] = useURLState<string>("if", "2023-01-01");
-	const [interval_to, setInterval_to] = useURLState<string>("it", "2023-01-01");
+	const [interval_from, setInterval_from] = useURLState<string>("if", new Date().toISOString().split("T")[0]);
+	const [interval_to, setInterval_to] = useURLState<string>("it", new Date().toISOString().split("T")[0]);
 
 	const { RangePicker } = DatePicker;
 	const { Text, Title } = Typography;
 	const dateFormat = 'YYYY-MM-DD';
 
 	const [allPartnersX, setAllPartnersX] = useState<any[]>([]);
-	const [selectedPartner, setSelectedPartner] = useState<string>("");
+	const [selectedPartner, setSelectedPartner] = useState<string | null>(null);
 	const [allMissions, setAllMissions] = useState<any[]>([]);
 	const [loading, setLoading] = useState<boolean>(false);
 	const [selected, setSelected] = useState<string[]>([]);
@@ -360,11 +360,13 @@ export default function X() {
 
 			<Select
 				showSearch
+				// value={selectedPartner}
 				placeholder={"Choisissez un partenaire (" + allPartnersX.length + ")"}
 				onChange={(e) => { console.log({ e }); setSelectedPartner(e); }}
 				options={allPartnersX.map(x => ({ value: x.id, label: x.name }))}
 				filterOption={filterOption}
 			/>
+
 
 			<div style={{ width: 15 }}></div>
 

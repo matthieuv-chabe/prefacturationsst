@@ -34,7 +34,7 @@ export interface Mission {
 }
 
 
-const X = async () => {
+const X = async (props: {onrecv: (data: any) => void}) => {
 
     const router = useRouter();
 
@@ -58,6 +58,7 @@ const X = async () => {
         // @ts-ignore
         setData(data);
         setLoading(false);
+        props.onrecv(data);
     });
 
     const sum = (data as Root).missions.reduce((acc, mission) => acc + mission.buying_price, 0);
@@ -226,6 +227,9 @@ const X = async () => {
 
 const Page = () => {
 
+    const [data2, setData2] = useState<any>([]);
+
+
     const openNotification = (placement: any) => {
         notification.info({
             message: `Relevé envoyé au sous-traitant`,
@@ -242,9 +246,10 @@ const Page = () => {
         return <></>
     }
 
+
     return (<NoSSR>
         <>
-            <X/>
+            <X onrecv={(e) => setData2(e)} />
             <Button
                 className={"noprint"}
                 type={"primary"}
@@ -252,7 +257,7 @@ const Page = () => {
                     fetch("/api/sendToContractor", {
                     	method: "POST",
                     	body: JSON.stringify({
-                    		missions: urlParams.get("p")!,
+                    		missions: data2,
                     	}),
                     }).then(e => {
                     	openNotification("topRight");
