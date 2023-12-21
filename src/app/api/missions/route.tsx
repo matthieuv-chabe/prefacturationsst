@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     const date_end = body.end;
     const partner = body.partner;
 
-    const nextDay = new Date(new Date(date_end).getTime() + 24 * 60 * 60 * 1000);
+    const nextDay = new Date(new Date().setDate(new Date().getDate() + 1))
 
     console.log({date_start, date_end, partner})
 

@@ -79,8 +79,20 @@ export async function POST(request: NextRequest) {
     //     "L'équipe Chabé"
     // );
 
-    const m = JSON.parse(atob(body.missions)) as {missions: any[]};
+    const m = JSON.parse(body.missions) as {missions: any[]};
 
+    console.log("=====================================")
+    console.log("=====================================")
+    console.log("=====================================")
+    console.log("=====================================")
+    console.log("=====================================")
+    console.log("=====================================")
+    console.log("=====================================")
+    console.log("=====================================")
+    console.log("=====================================")
+    console.log("=====================================")
+    console.log("=====================================")
+    console.log("=====================================")
     console.log(m)
 
     for(let i = 0; i < m.missions.length; i++) {

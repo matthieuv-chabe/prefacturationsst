@@ -54,14 +54,24 @@ const X = async (props: {onrecv: (data: any) => void}) => {
             resolve(event.data);
         });
     }).then((data) => {
+
+        console.log({data});
+
+        // if(typeof data != "undefined" && typeof data.source === "string" && data.source.indexOf('react-devtools') == 0) return;
+
         console.log(data);
         // @ts-ignore
         setData(data);
         setLoading(false);
-        props.onrecv(data);
+        props.onrecv(JSON.stringify(data));
     });
 
-    const sum = (data as Root).missions.reduce((acc, mission) => acc + mission.buying_price, 0);
+    let sum = 0;
+    try {
+        sum = (data as Root).missions.reduce((acc, mission) => acc + mission.buying_price, 0);
+    } catch {
+        return <></>
+    }
 
     return (<>
         <div
@@ -114,7 +124,7 @@ const X = async (props: {onrecv: (data: any) => void}) => {
                             textAlign: 'center',
                             fontSize: 'large'
                         }}>
-                            MISSIONS DE {data.missions[0].partner_id.split('|')[1]} DU {new Date(data.from).toLocaleDateString()} AU {new Date(data.to).toLocaleDateString()}
+                            MISSIONS DE {data.missions?.[0].partner_id.split('|')[1]} DU {new Date(data.from).toLocaleDateString()} AU {new Date(data.to).toLocaleDateString()}
                         </p>
                     </div>
 
@@ -160,7 +170,7 @@ const X = async (props: {onrecv: (data: any) => void}) => {
                             </tr>}
 
                             {
-                                !loading && data.missions.map((mission, index) => {
+                                !loading && data.missions?.map((mission, index) => {
                                     return (
                                         <>
                                             <tr>
