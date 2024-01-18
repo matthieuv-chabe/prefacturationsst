@@ -57,7 +57,7 @@ class CSalesforce {
         urlencoded.append("client_id", env.SF_CLIENT_ID ?? "");
         urlencoded.append("client_secret", encodeURIComponent(env.SF_CLIENT_SECRET ?? ""));
         urlencoded.append("username", env.SF_USERNAME ?? "");
-        urlencoded.append("password", (env.SF_PASSWORD ?? "") + (env.SF_SECURITY_TOKEN ?? ""));
+        urlencoded.append("password", (env.SF_PASSWORD ?? "") + encodeURIComponent(env.SF_SECURITY_TOKEN ?? ""));
 
         console.log({urlencoded})
 
@@ -71,7 +71,7 @@ class CSalesforce {
         const r = await fetch(`${env.SF_LOGIN_URL}/services/oauth2/token`, requestOptions)
             .then(response => response.json())
             .then((r) => {
-                console.log("Authentication successful", r)
+                console.log("Authentication returned ", r)
                 return r;
             })
             .catch(error => console.log('error', error));
