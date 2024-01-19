@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {NoSSR} from "next/dist/shared/lib/lazy-dynamic/dynamic-no-ssr";
 
 import "./style.css"
@@ -36,8 +36,6 @@ export interface Mission {
 
 const X = async (props: {onrecv: (data: any) => void}) => {
 
-    const router = useRouter();
-
     const str_to_price = (str: string) => {
         const number = parseFloat(str.replace("€", ""));
         return number.toLocaleString('fr-FR', {style: 'currency', currency: 'EUR'});
@@ -49,22 +47,24 @@ const X = async (props: {onrecv: (data: any) => void}) => {
     const [data, setData] = useState<Root>(JSON.parse(atob(urlParams.get("p")!)) as Root);
     const [loading, setLoading] = useState<boolean>(true);
 
-    new Promise((resolve) => {
-        window.addEventListener('message', (event) => {
-            resolve(event.data);
+    useEffect(() => {
+        new Promise((resolve) => {
+            window.addEventListener('message', (event) => {
+                resolve(event.data);
+            });
+        }).then((data) => {
+
+            console.log({data});
+
+            // if(typeof data != "undefined" && typeof data.source === "string" && data.source.indexOf('react-devtools') == 0) return;
+
+            console.log(data);
+            // @ts-ignore
+            setData(data);
+            setLoading(false);
+            props.onrecv(JSON.stringify(data));
         });
-    }).then((data) => {
-
-        console.log({data});
-
-        // if(typeof data != "undefined" && typeof data.source === "string" && data.source.indexOf('react-devtools') == 0) return;
-
-        console.log(data);
-        // @ts-ignore
-        setData(data);
-        setLoading(false);
-        props.onrecv(JSON.stringify(data));
-    });
+    }, []);
 
     let sum = 0;
     try {
