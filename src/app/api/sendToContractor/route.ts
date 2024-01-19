@@ -67,7 +67,7 @@ async function printPDF(url: string, path: string, missions: any[]) {
 
 
     await page.pdf({path: path, landscape: true, printBackground: true});
-    // await browser.close();
+    await browser.close();
 }
 
 export async function POST(request: NextRequest) {
