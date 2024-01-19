@@ -83,8 +83,8 @@ export async function POST(request: NextRequest) {
     await printPDF(page, "public/rlv.pdf", JSON.parse(body.missions));
 
     mailService.sendMail(
-        "noreply-event@chabe.fr",
-        "matthieu.vancayzeele@chabe.fr",
+        "factures-artisans@chabe.fr",
+        "sst_a_envoyer@chabe.fr",
         "Relevé de missions Chabé",
         [
             {path: "public/rlv.pdf", filename: "releve.pdf", contentType: "application/pdf"}

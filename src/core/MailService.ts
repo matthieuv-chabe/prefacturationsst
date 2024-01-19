@@ -5,8 +5,8 @@ const process_env = {
     SMTP_HOST: "smtp.office365.com",
     SMTP_PORT: 587,
     SMTP_SECURE: false,
-    SMTP_PASSWORD: "Bob14725",
-    SMTP_USERNAME: "noreply-event@chabe.fr",
+    SMTP_PASSWORD: "Jog89234",
+    SMTP_USERNAME: "factures-artisans@chabe.fr",
 };
 
 export interface Attachement {
