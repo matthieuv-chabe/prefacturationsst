@@ -6,7 +6,7 @@ import {mailService} from "@/core/MailService";
 
 async function printPDF(url: string, path: string, missions: any[]) {
 
-    const browser = await puppeteer.launch({headless: false});
+    const browser = await puppeteer.launch({headless: "new"});
     const page = await browser.newPage();
     await page.goto(url, {waitUntil: 'networkidle0'});
     await page.emulateMediaType('screen');
