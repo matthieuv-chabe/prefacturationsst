@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     console.log(body.missions)
 
-    const page = "http://localhost:3000/rlv?p=" + btoa(body.missions);
+    const page = "http://localhost:3000/rlv?p=" + btoa(JSON.stringify(body.missions));
     await printPDF(page, "public/rlv.pdf", JSON.parse(body.missions));
 
     mailService.sendMail(

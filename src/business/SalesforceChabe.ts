@@ -48,7 +48,7 @@ class CSalesforceChabe {
 	): Promise<{count: number, jobs: SFJobInformation[]}>
 	{
 		const nextDay = new Date(dateEnd.getTime() + 24 * 60 * 60 * 1000);
-		const query = `SELECT Id, Start_Date_Time__c, End_Date_Time__c, ServiceType_ERP_ID__c, Purchase_Price__c, Calculated_Incl_VAT_Price__c, Purchase_Invoice_Number__c, Pick_Up_Location__c, Drop_Off_Location__c, Partner_ERP_ID__c, OrderedVehicleType_ERP_ID__c, Status_ERP_ID__c, Client_Salesforce_Code__c, COM_ID__c, Chauffeur_ERP_ID__c, Transmitted_To_Partner__c, Sage_Number__c FROM Job__c WHERE Start_Date_Time__c >= ${dateBegin.toISOString()} AND End_Date_Time__c <= ${nextDay.toISOString()} AND Partner_ERP_ID__c = '${partnerId}' AND (Transmitted_To_Partner__c = 'sent' OR Transmitted_To_Partner__c = 'ignored') AND Sage_Number__c = null AND Dispatch__c = 'chabe'`;
+		const query = `SELECT Id, Start_Date_Time__c, End_Date_Time__c, ServiceType_ERP_ID__c, Purchase_Price__c, Calculated_Incl_VAT_Price__c, Purchase_Invoice_Number__c, Pick_Up_Location__c, Drop_Off_Location__c, Partner_ERP_ID__c, OrderedVehicleType_ERP_ID__c, Status_ERP_ID__c, Client_Salesforce_Code__c, COM_ID__c, Chauffeur_ERP_ID__c, Transmitted_To_Partner__c, Sage_Number__c FROM Job__c WHERE Start_Date_Time__c >= ${dateBegin.toISOString()} AND End_Date_Time__c <= ${nextDay.toISOString()} AND Partner_ERP_ID__c = '${partnerId}' AND (Transmitted_To_Partner__c = 'sent' OR Transmitted_To_Partner__c = 'ignored') AND (Sage_Number__c = null OR Sage_Number__c = '	') AND Dispatch__c = 'chabe'`;
 		const qresult = await Salesforce.soql(query);
 		return { count: qresult.totalSize, jobs: qresult.records as unknown as SFJobInformation[]};
 	}
