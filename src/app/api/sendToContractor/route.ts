@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     console.log(body.missions)
 
-    const page = "http://localhost:3000/rlv?p=" + btoa(JSON.stringify(body.missions));
+    const page = "http://localhost:3000/rlv?p=" + btoa(`{missions: [{from: "2021-01-01", to: "2021-01-01", id: "a", client: "a", price: "a", invoice: "a", sage: "a", chauffeur: "a", status: "a", type: "a", pickup: "a", dropoff: "a", partner: "a", com: "a", chauffeur: "a", client: "a"}]`);
     await printPDF(page, "public/rlv.pdf", JSON.parse(body.missions));
 
     mailService.sendMail(
