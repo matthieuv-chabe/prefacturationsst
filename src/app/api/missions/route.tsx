@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     
     const body = await request.json();
     const date_start = body.start;
-    const date_end = body.end;
+    const date_end = new Date(body.end);
     const partner = body.partner;
 
     const nextDay = date_end.setDate(date_end.getDate() + 1);

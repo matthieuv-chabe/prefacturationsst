@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     const start = new Date(body.start)
     const end = new Date(body.end)
 
-    const nextDay = new Date(new Date().setDate(new Date().getDate() + 1))
+    const nextDay = new Date(end.getTime() + 24 * 60 * 60 * 1000);
 
     if(!start || !end) return NextResponse.error()
 
