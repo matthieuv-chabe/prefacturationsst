@@ -6,7 +6,7 @@ import {mailService} from "@/core/MailService";
 
 async function printPDF(url: string, path: string, missions: any[]) {
 
-    const browser = await puppeteer.launch({headless: "new"});
+    const browser = await puppeteer.launch({headless: false});
     const page = await browser.newPage();
     await page.goto(url, {waitUntil: 'networkidle0'});
     await page.emulateMediaType('screen');
@@ -67,7 +67,7 @@ async function printPDF(url: string, path: string, missions: any[]) {
 
 
     await page.pdf({path: path, landscape: true, printBackground: true});
-    await browser.close();
+    // await browser.close();
 }
 
 export async function POST(request: NextRequest) {
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     console.log(body.missions)
 
-    const page = "http://localhost:3000/rlv?p=" + btoa(`{missions: [{from: "2021-01-01", to: "2021-01-01", id: "a", client: "a", price: "a", invoice: "a", sage: "a", chauffeur: "a", status: "a", type: "a", pickup: "a", dropoff: "a", partner: "a", com: "a", chauffeur: "a", client: "a"}]`);
+    const page = "http://localhost:3000/rlv?p=" + btoa(`{"from":"2023-12-01","to":"2024-01-01","missions":[]}`);
     await printPDF(page, "public/rlv.pdf", JSON.parse(body.missions));
 
     mailService.sendMail(

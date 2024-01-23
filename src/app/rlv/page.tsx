@@ -124,7 +124,7 @@ const X = async (props: {onrecv: (data: any) => void}) => {
                             textAlign: 'center',
                             fontSize: 'large'
                         }}>
-                            MISSIONS DE {data.missions?.[0].partner_id.split('|')[1]} DU {new Date(data.from).toLocaleDateString()} AU {new Date(data.to).toLocaleDateString()}
+                            MISSIONS DE {data.missions?.[0]?.partner_id?.split('|')[1]} DU {new Date(data.from ?? "2022-01-01").toLocaleDateString()} AU {new Date(data.to ?? "2022-01-01").toLocaleDateString()}
                         </p>
                     </div>
 
