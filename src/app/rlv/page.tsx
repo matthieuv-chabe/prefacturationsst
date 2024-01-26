@@ -1,12 +1,12 @@
 "use client";
 
-import React, {useEffect, useState} from "react";
-import {NoSSR} from "next/dist/shared/lib/lazy-dynamic/dynamic-no-ssr";
+import React, { useEffect, useState } from "react";
+import { NoSSR } from "next/dist/shared/lib/lazy-dynamic/dynamic-no-ssr";
 
 import "./style.css"
-import {Button, notification} from "antd";
-import {useRouter} from "next/navigation";
-import {WAYNIUM_servicetype_id_to_string, WAYNIUM_vehiculetype_id_to_string} from "@/business/waynium";
+import { Button, notification } from "antd";
+import { WAYNIUM_servicetype_id_to_string, WAYNIUM_vehiculetype_id_to_string } from "@/business/waynium";
+import { PageLoading } from "@ant-design/pro-components";
 
 export interface Root {
     from: string
@@ -34,11 +34,11 @@ export interface Mission {
 }
 
 
-const X = async (props: {onrecv: (data: any) => void}) => {
+const X = async (props: { onrecv: (data: any) => void }) => {
 
     const str_to_price = (str: string) => {
         const number = parseFloat(str.replace("€", ""));
-        return number.toLocaleString('fr-FR', {style: 'currency', currency: 'EUR'});
+        return number.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
     }
 
     const isForDemo = true;
@@ -48,22 +48,26 @@ const X = async (props: {onrecv: (data: any) => void}) => {
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        new Promise((resolve) => {
-            window.addEventListener('message', (event) => {
-                resolve(event.data);
-            });
-        }).then((data) => {
 
-            console.log({data});
+        window.addEventListener('message', (event) => {
+            console.log("message received: ", event.data);
 
-            // if(typeof data != "undefined" && typeof data.source === "string" && data.source.indexOf('react-devtools') == 0) return;
-
-            console.log(data);
             // @ts-ignore
-            setData(data);
+            if (typeof event.data != "undefined" && event.data != null && typeof event.data.source === "string") {
+                console.log("react-devtools");
+                return;
+            };
+
+            setData(event.data);
             setLoading(false);
-            props.onrecv(JSON.stringify(data));
+            props.onrecv(JSON.stringify(event.data));
+
         });
+
+        return () => {
+            window.removeEventListener('message', () => { });
+        }
+
     }, []);
 
     let sum = 0;
@@ -73,7 +77,7 @@ const X = async (props: {onrecv: (data: any) => void}) => {
         return <></>
     }
 
-    return (<>
+    return (
         <div
             id="pdfready"
             style={{
@@ -133,12 +137,12 @@ const X = async (props: {onrecv: (data: any) => void}) => {
                             printColorAdjust: 'exact',
                             fontFamily: 'Arial, Helvetica, sans-serif'
                         }}>
-                            MONTANT TTC : <b style={{color: '#DE2B4E'}}>{str_to_price(""+sum)}</b>
+                            MONTANT TTC : <b style={{ color: '#DE2B4E' }}>{str_to_price("" + sum)}</b>
                         </p>
                     </div>
 
                     <div>
-                        <table style={{width: "100%"}}>
+                        <table style={{ width: "100%" }}>
                             <thead>
                                 <tr style={{
                                     printColorAdjust: 'exact',
@@ -163,17 +167,17 @@ const X = async (props: {onrecv: (data: any) => void}) => {
                             </thead>
                             <tbody>
 
-                            {loading && <tr>
-                                <td colSpan={9} style={{textAlign: "center"}}>
-                                    Chargement...
-                                </td>
-                            </tr>}
+                                {loading && <tr>
+                                    <td colSpan={9} style={{ textAlign: "center" }}>
+                                        Chargement...
+                                    </td>
+                                </tr>}
 
-                            {
-                                !loading && data.missions?.map((mission, index) => {
-                                    return (
-                                        <>
-                                            <tr>
+                                {
+                                    !loading && data.missions?.map((mission, index) => {
+                                        return (
+
+                                            <tr key={mission.id}>
 
                                                 <td>
                                                     {
@@ -212,14 +216,14 @@ const X = async (props: {onrecv: (data: any) => void}) => {
                                                     {WAYNIUM_vehiculetype_id_to_string(mission.vehicle_type)}
                                                 </td>
 
-                                                <td style={{textAlign: "right"}}>
-                                                    {str_to_price(""+mission.buying_price)}
+                                                <td style={{ textAlign: "right" }}>
+                                                    {str_to_price("" + mission.buying_price)}
                                                 </td>
                                             </tr>
-                                        </>
-                                    )
-                                })
-                            }
+
+                                        )
+                                    })
+                                }
 
                             </tbody>
                         </table>
@@ -231,14 +235,13 @@ const X = async (props: {onrecv: (data: any) => void}) => {
 
         </div>
 
-
-    </>)
+    )
 }
 
 const Page = () => {
 
     const [data2, setData2] = useState<any>([]);
-
+    const [loaded, setLoaded] = useState<boolean>(false);
 
     const openNotification = (placement: any) => {
         notification.info({
@@ -248,7 +251,7 @@ const Page = () => {
     }
 
     const urlParams = new URLSearchParams((typeof window !== "undefined" && window?.location?.search) || "https://google.com");
-    let data: Root = {to: "", from: "", missions: []}
+    let data: Root = { to: "", from: "", missions: [] }
 
     try {
         data = JSON.parse(atob(urlParams.get("p")!)) as Root;
@@ -257,33 +260,31 @@ const Page = () => {
     }
 
 
-    return (<NoSSR>
-        <>
-            <X onrecv={(e) => setData2(e)} />
-            <Button
-                className={"noprint"}
-                type={"primary"}
-                onClick={() => {
-                    fetch("/api/sendToContractor", {
-                    	method: "POST",
-                    	body: JSON.stringify({
-                    		missions: data2,
-                    	}),
-                    }).then(e => {
-                    	openNotification("topRight");
-                    });
-                }}
-            >
-                Envoyer le relevé au sous-traitant
-            </Button>
-            <Button
-                className={"noprint"}
-                style={{marginLeft: 10}}
-            >
-                Le sous-traitant a déjà envoyé sa facture
-            </Button>
-        </>
-    </NoSSR>)
+    return (<>
+        <X onrecv={(e) => { setData2(e); setLoaded(true) }} />
+        <Button
+            className={"noprint"}
+            type={"primary"}
+            onClick={() => {
+                fetch("/api/sendToContractor", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        missions: data2,
+                    }),
+                }).then(e => {
+                    openNotification("topRight");
+                });
+            }}
+        >
+            Envoyer le relevé au sous-traitant
+        </Button>
+        <Button
+            className={"noprint"}
+            style={{ marginLeft: 10 }}
+        >
+            Le sous-traitant a déjà envoyé sa facture
+        </Button>
+    </>)
 }
 
 export default Page;

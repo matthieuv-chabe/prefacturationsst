@@ -393,7 +393,12 @@ export default function X() {
 					// Send data to the target window
 					await new Promise((resolve) => setTimeout(resolve, 3000));
 					// @ts-ignore
-					target?.postMessage({ ...data, missions: selected }, "*");
+					try {
+						console.log({ data });
+						target?.postMessage({ ...data, missions: selected }, "*");
+					} catch (error) {
+						console.error(error);
+					}
 				}}
 			>
 				Exporter

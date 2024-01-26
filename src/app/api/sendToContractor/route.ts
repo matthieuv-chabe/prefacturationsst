@@ -1,14 +1,14 @@
-import {NextRequest, NextResponse} from "next/server";
-import {Salesforce} from "@/core/salesforce";
+import { NextRequest, NextResponse } from "next/server";
+import { Salesforce } from "@/core/salesforce";
 
 import puppeteer from "puppeteer";
-import {mailService} from "@/core/MailService";
+import { mailService } from "@/core/MailService";
 
 async function printPDF(url: string, path: string, missions: any[]) {
 
-    const browser = await puppeteer.launch({headless: false});
+    const browser = await puppeteer.launch({ headless: "new" });
     const page = await browser.newPage();
-    await page.goto(url, {waitUntil: 'networkidle0'});
+    await page.goto(url, { waitUntil: 'networkidle0' });
     await page.emulateMediaType('screen');
 
     await page.evaluate(() => {
@@ -61,13 +61,18 @@ async function printPDF(url: string, path: string, missions: any[]) {
     // @ts-ignore
     await page.evaluate(async (data) => {
         // @ts-ignore
-        window.postMessage(data, "*");
+        try {
+            window.postMessage(data, "*");
+        }
+        catch (e) {
+            console.log(e);
+        }
         await new Promise((resolve) => setTimeout(resolve, 4000));
-    }, {...data, from: data.missions[0].date_start, to: data.missions[data.missions.length - 1].date_end});
+    }, { ...data, from: data.missions[0].date_start, to: data.missions[data.missions.length - 1].date_end });
 
 
-    await page.pdf({path: path, landscape: true, printBackground: true});
-    // await browser.close();
+    await page.pdf({ path: path, landscape: true, printBackground: true });
+    await browser.close();
 }
 
 export async function POST(request: NextRequest) {
@@ -84,10 +89,11 @@ export async function POST(request: NextRequest) {
 
     mailService.sendMail(
         "factures-artisans@chabe.fr",
-        "sst_a_envoyer@chabe.fr",
+        // "sst_a_envoyer@chabe.fr",
+        "matthieu.vancayzeele@chabe.fr",
         "Relevé de missions Chabé",
         [
-            {path: "public/rlv.pdf", filename: "releve.pdf", contentType: "application/pdf"}
+            { path: "public/rlv.pdf", filename: "releve.pdf", contentType: "application/pdf" }
         ],
         "Bonjour,\n\n" +
         "Veuillez trouver ci-joint le relevé de missions Chabé.\n\n" +
@@ -117,7 +123,7 @@ export async function POST(request: NextRequest) {
         console.log("Mission " + mission.id + " " + (i + 1) + "/" + m.missions.length);
 
         const missionId = mission.id;
-        await Salesforce.update("Job__c", missionId, {Transmitted_To_Partner__c: "sent"})
+        await Salesforce.update("Job__c", missionId, { Transmitted_To_Partner__c: "sent" })
     }
 
     return NextResponse.json("OK");
