@@ -94,7 +94,7 @@ class CSalesforceChabe {
 
 
 	public async getChauffeurNames(ids: string[]): Promise<{ id: string, name: string }[]> {
-		const query = `SELECT ERP_ID__c, FullName__c FROM Chauffeur__c WHERE ERP_ID__c IN ('${this.unique(ids).join("','")}')`;
+		const query = `SELECT ERP_ID__c, FullName__c FROM Chauffeur__c WHERE ERP_ID__c IN ('${this.unique(ids).join("','")}') AND Dispatch__c = 'chabe'`;
 		const qresult = await Salesforce.soql(query);
 		return qresult.records.map(e => ({ id: e.ERP_ID__c, name: e.FullName__c }));
 	}

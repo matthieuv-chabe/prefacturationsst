@@ -502,6 +502,7 @@ export default function X() {
 						{ label: "Type de véhicule", value: (row: DataType) => WAYNIUM_vehiculetype_id_to_string(row.vehicle_type) },
 						{ label: "Type de service", value: (row: DataType) => WAYNIUM_servicetype_id_to_string(row.service_type) },
 						{ label: "Client", value: "client" },
+						{label: 'Partenaire', value: (row:DataType) => row.partner_id.split("|")[1] ?? ''},
 						{ label: "Chauffeur", value: "chauffeur_name" },
 						{ label: "Adresse de prise en charge", value: "pickup_address" },
 						{ label: "Adresse de dépose", value: "dropoff_address" },

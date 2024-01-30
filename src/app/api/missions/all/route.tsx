@@ -118,8 +118,6 @@ export async function POST(request: NextRequest) {
     const partner_names = await SalesforceChabe.getPartnerNames(Array.from(all_partner_ids));
     const chauf_names = await SalesforceChabe.getChauffeurNames(Array.from(all_chauf_ids));
 
-    console.log({chauf_names})
-
     const result = sf.jobs.map((mission) => ({
         id: mission.Id,
         date_start: mission.Start_Date_Time__c,
