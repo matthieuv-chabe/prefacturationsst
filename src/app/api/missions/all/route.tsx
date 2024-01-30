@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
 
     const nextDay = date_end.setDate(date_end.getDate() + 1);
 
-    const sf = await SalesforceChabe.getMissionsBetweenDates(
+    const sf = await SalesforceChabe.getMissionsBetweenDatesAllPartners(
         new Date(date_start), new Date(nextDay)
     );
 
@@ -117,6 +117,8 @@ export async function POST(request: NextRequest) {
 
     const partner_names = await SalesforceChabe.getPartnerNames(Array.from(all_partner_ids));
     const chauf_names = await SalesforceChabe.getChauffeurNames(Array.from(all_chauf_ids));
+
+    console.log({chauf_names})
 
     const result = sf.jobs.map((mission) => ({
         id: mission.Id,
