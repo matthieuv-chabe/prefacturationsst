@@ -89,8 +89,8 @@ export async function POST(request: NextRequest) {
 
     mailService.sendMail(
         "factures-artisans@chabe.fr",
-        // "sst_a_envoyer@chabe.fr",
-        "matthieu.vancayzeele@chabe.fr",
+        "sst_a_envoyer@chabe.fr",
+        //"matthieu.vancayzeele@chabe.fr",
         "Relevé de missions Chabé",
         [
             { path: "public/rlv.pdf", filename: "releve.pdf", contentType: "application/pdf" }
