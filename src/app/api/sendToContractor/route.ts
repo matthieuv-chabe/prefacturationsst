@@ -87,13 +87,16 @@ export async function POST(request: NextRequest) {
     const page = "http://localhost:3000/rlv?p=" + btoa(`{"from":"2023-12-01","to":"2024-01-01","missions":[]}`);
     await printPDF(page, "public/rlv.pdf", JSON.parse(body.missions));
 
+    const contractor = body.missions?.[0]?.partner_id?.split('|')[1]
+    const endMonth = new Date(body.missions[body.missions.length - 1].end_date).getMonth()
+
     mailService.sendMail(
         "factures-artisans@chabe.fr",
         "sst_a_envoyer@chabe.fr",
         //"matthieu.vancayzeele@chabe.fr",
         "Relevé de missions Chabé",
         [
-            { path: "public/rlv.pdf", filename: "releve.pdf", contentType: "application/pdf" }
+            { path: "public/rlv.pdf", filename: `releve_${contractor}_${endMonth}.pdf`, contentType: "application/pdf" }
         ],
         "Bonjour,\n\n" +
         "Veuillez trouver ci-joint le relevé de missions Chabé.\n\n" +
