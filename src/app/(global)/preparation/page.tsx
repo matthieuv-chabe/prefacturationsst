@@ -383,7 +383,8 @@ export default function X() {
 					data.to = interval_to;
 					// @ts-ignore
 					// data.missions = selected;
-					data.missions = [selected[0]]
+					//data.missions = [selected[0]]
+					data.missions = []
 
 					const target = window.open("/rlv?p=" + btoa(JSON.stringify(data)), "_blank");
 					if (!target) {
