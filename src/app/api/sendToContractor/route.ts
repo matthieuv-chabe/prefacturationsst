@@ -82,13 +82,19 @@ export async function POST(request: NextRequest) {
     // In body
     const body = await request.json();
 
-    console.log(body.missions)
+    // console.log(body.missions)
 
     const page = "http://localhost:3000/rlv?p=" + btoa(`{"from":"2023-12-01","to":"2024-01-01","missions":[]}`);
     await printPDF(page, "public/rlv.pdf", JSON.parse(body.missions));
 
-    const contractor = body.missions?.[0]?.partner_id?.split('|')[1]
-    const endMonth = new Date(body.missions[body.missions.length - 1].end_date).getMonth()
+    const ms = JSON.parse(body.missions).missions
+    const contractor = ms[0].partner_id.split('|')[1]
+    const endMonth = new Date(ms[ms.length - 1].date_end).toLocaleString('default', { month: 'long' });
+
+    // console.log(JSON.stringify(body))
+    // console.log({contractor, endMonth})
+
+
 
     mailService.sendMail(
         "factures-artisans@chabe.fr",
