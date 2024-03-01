@@ -5,14 +5,14 @@ import { SalesforceChabe } from "@/business/SalesforceChabe";
 import { NextRequest, NextResponse } from "next/server";
 
 const SafeStr = (string: string | null): string => {
-    if(!string) return "";
+    if (!string) return "";
 
     // If any character other than alphanumeric or space or accents, replace with space
     return string.replace(/[^a-zA-Z0-9\u00C0-\u017F ]/g, " ");
 }
 
 const SafeCommaArray = (string: string | null): string[] => {
-    if(!string) return [];
+    if (!string) return [];
 
     // If any character other than alphanumeric or space or accents, replace with space
     return string.split(",").map((x) => SafeStr(x.trim()));
@@ -94,32 +94,24 @@ const SafeCommaArray = (string: string | null): string[] => {
 
 export async function POST(request: NextRequest) {
 
-    // const search = request.nextUrl.searchParams;
-    // const date_start = SafeStr(search.get("date_start"))
-    // const date_end = SafeStr(search.get("date_end"))
-    // const partner = SafeStr(search.get("partner"))
-    
     const body = await request.json();
     const date_start = body.start;
     const date_end = new Date(body.end);
-    const partner = body.partner;
 
     const nextDay = date_end.setDate(date_end.getDate() + 1);
 
-    console.log({date_start, date_end, partner})
-
-    const sf = await SalesforceChabe.getMissionsBetweenDates(
-        new Date(date_start), new Date(nextDay), partner
+    const sf = await SalesforceChabe.getMissionsBetweenDatesAllPartners(
+        new Date(date_start), new Date(nextDay)
     );
 
 
     const all_partner_ids = new Set<string>();
-    for(const mission of sf.jobs) {
+    for (const mission of sf.jobs) {
         all_partner_ids.add(mission.Partner_ERP_ID__c);
     }
 
     const all_chauf_ids = new Set<string>();
-    for(const mission of sf.jobs) {
+    for (const mission of sf.jobs) {
         all_chauf_ids.add(mission.Chauffeur_ERP_ID__c);
     };
 
@@ -146,11 +138,11 @@ export async function POST(request: NextRequest) {
         client: mission.Client_Salesforce_Code__c,
     } as unknown as DataType));
 
-    return NextResponse.json({count: result.length, jobs: result});
+    return NextResponse.json({ count: result.length, jobs: result });
 
 
     // const mapped = sf.jobs.map((mission) => {
-// 
+    // 
     //     const partner_name = partner_names.find((x) => x.id == mission.Partner_ERP_ID__c)?.name;
     //     const chauf_name = chauf_names.find((x) => x.id == mission.Chauffeur_ERP_ID__c)?.name;
 

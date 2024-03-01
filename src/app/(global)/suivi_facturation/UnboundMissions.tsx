@@ -1,24 +1,26 @@
 "use client";
 
-import {Button, Checkbox, DatePicker, Divider, Drawer, Input, message, Table, TableColumnProps, Typography} from 'antd';
+import {
+    Button,
+    Card,
+    DatePicker,
+    Drawer,
+    Input,
+    Select,
+    Table,
+    Typography,
+    message,
+    notification
+} from 'antd';
 import React, { useState, useEffect } from "react";
-import { useAntdTable } from 'ahooks';
 import { ColumnsType } from "antd/es/table";
-import dayjs, { Dayjs } from "dayjs";
-import { CheckboxOptionType, CheckboxValueType } from "antd/es/checkbox/Group";
-import { CheckboxChangeEvent } from "antd/es/checkbox";
+import dayjs from "dayjs";
 import {
     WAYNIUM_servicetype_id_to_string,
     WAYNIUM_statut_id_to_string,
     WAYNIUM_vehiculetype_id_to_string
 } from "@/business/waynium";
-import Card from 'antd/es/card/Card';
-
-import {
-    DownloadOutlined,
-    InfoCircleOutlined
-} from '@ant-design/icons';
-// import SendToContractor, { Contractor_t } from './SendToContractor';
+import { NotificationPlacement } from 'antd/es/notification/interface';
 
 type SetValue<T> = (newValue: T | ((prevValue: T) => T)) => void;
 
@@ -109,164 +111,33 @@ const get_substring_by_brackets = (str: string, offset: number, open: string, cl
     return str.substring(start + 1, end);
 }
 
+function unique(inp: { text: string, value: string }[]) {
+    const seen = new Set<string>();
+    return inp.filter(el => {
+        const duplicate = seen.has(el.value);
+        seen.add(el.value);
+        return !duplicate;
+    });
+}
+
 export default function X() {
 
-    const [allClients, setAllClients] = useState<{ text: string, value: string }[]>([]);
-    const [allServices, setAllServices] = useState<{ text: string, value: string }[]>([]);
-    const [allPartners, setAllPartners] = useState<any[]>([]);
 
     // Date interval
     const [interval_from, setInterval_from] = useURLState<string>("if", "2023-01-01");
     const [interval_to, setInterval_to] = useURLState<string>("it", "2023-01-01");
 
-    const getTableData = async (x: { current: number, pageSize: number, sorter: any, filters: any }) => {
+    const { RangePicker } = DatePicker;
+    const { Paragraph, Text, Title } = Typography;
+    const dateFormat = 'YYYY-MM-DD';
 
-        const array_to_string = (arr: string[] | undefined) => {
+    const [allPartnersX, setAllPartnersX] = useState<any[]>([]);
+    const [selectedPartner, setSelectedPartner] = useState<string>("");
+    const [allMissions, setAllMissions] = useState<any[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [selected, setSelected] = useState<string[]>([]);
 
-            if (arr == null) return "";
-
-            return arr.map((x) => {
-                return `${x}`;
-            }).join(",");
-        }
-
-        let filters = x.filters || {};
-        filters.only_sent_to_supplier = true;
-
-        const query = ` 
-			&limit=${x.pageSize}
-			&offset=${(x.current - 1) * x.pageSize}
-			&filters=${JSON.stringify(filters)}
-			&sorter=${JSON.stringify(x.sorter)}
-		`;
-
-
-
-        return fetch(`/api/missions?date_start=${interval_from}&date_end=${interval_to}&${query}`)
-            .then((res) => res.json())
-            .then((res: { count: number, jobs: DataType[] }) => {
-
-                console.log({ res })
-
-                let all_clients = new Set<string>();
-                res.jobs.forEach((x: any) => { all_clients.add(x.client); });
-                setAllClients(
-                    Array.from(all_clients).map((x: string) => {
-                        return { text: x, value: x }
-                    }).sort((a, b) => a.text.localeCompare(b.text))
-                );
-
-                let all_services = new Set<string>();
-                res.jobs.forEach((x: any) => { if (x != null) all_services.add(x.service_type); });
-                setAllServices(
-                    Array.from(all_services).map((x: string) => {
-                        return { text: WAYNIUM_servicetype_id_to_string(x), value: x }
-                    })
-                        .filter((x) => x.text != null && x.text.length > 0 && x.value != null && x.value.length > 0)
-                        .sort((a, b) => a.text.localeCompare(b.text))
-                );
-
-                let all_partners = new Set<string>();
-                res.jobs.forEach((x: any) => { all_partners.add(x.partner_id); });
-                setAllPartners(
-                    Array.from(all_partners).map((x: string) => {
-                        return { text: x.split('|')[1], value: x.split('|')[0] }
-                    }).sort((a, b) => a.text.localeCompare(b.text))
-                );
-
-                console.log({ all_clients, all_services, all_partners })
-
-                return {
-                    total: res.count,
-                    list: res.jobs,
-                }
-            });
-    }
-
-    const {
-        tableProps,
-        refresh,
-    } = useAntdTable(getTableData, {
-        refreshOnWindowFocus: false,
-    })
-
-    const filter_dropdown = (props: { setSelectedKeys: (keys: string[]) => void, confirm: () => void }) => {
-        return (<>
-            <input type="text" onChange={(e) => {
-                props.setSelectedKeys(e.target.value ? [e.target.value] : []);
-            }} />
-            <Button onClick={() => {
-                props.confirm();
-            }}>ok
-            </Button>
-        </>);
-    }
-
-    const CheckboxGroup = Checkbox.Group;
-
-    const FilterDropdownCheckboxes = (props: { choices: any[], type: string, setSelectedKeys: (keys: string[]) => void, confirm: () => void }) => {
-
-        const [checkedList, setCheckedList] = useState<CheckboxValueType[]>([]);
-        const checkAll = props.choices.length === checkedList.length;
-        const indeterminate = checkedList.length > 0 && checkedList.length < props.choices.length;
-
-        const onCheckAllChange = (e: CheckboxChangeEvent) => {
-            setCheckedList(e.target.checked ? props.choices.map(e => e.value) : []);
-        };
-
-        const [search, setSearch] = useState<string>("");
-
-        return (<>
-            <div style={{ margin: 10 }}>
-                <Title level={3}>
-                    Liste des {props.type}
-                </Title>
-                <div style={{ margin: "5px", padding: 10, maxHeight: 400, overflowY: "auto" }}>
-
-                    <Input.Search
-                        placeholder="Rechercher"
-                        allowClear
-                        onChange={(e) => {
-                            setSearch(e.target.value);
-                        }}
-                    ></Input.Search>
-                    <Divider />
-                    {search.length == 0 &&
-                        <>
-                            <Checkbox
-                                indeterminate={indeterminate}
-                                onChange={onCheckAllChange}
-                                checked={checkAll}
-                            >
-                                Selectionner tous les {props.type}
-                            </Checkbox>
-                            <Divider />
-                        </>
-                    }
-                    <CheckboxGroup
-                        style={{ display: "flex", flexDirection: "column" }}
-                        value={checkedList}
-                        options={props.choices.map(e => {
-                            return {
-                                value: e.value,
-                                label: e.text,
-                                style: { display: search.length > 0 && !e.text.toLowerCase().includes(search.toLowerCase()) ? "none" : "" }
-                            } as CheckboxOptionType
-                        })}
-                        onChange={(checkedValues) => {
-                            setCheckedList(checkedValues);
-                            props.setSelectedKeys(checkedValues.map(x => x as string));
-                        }}
-                    />
-                </div>
-                <Button
-                    style={{ right: 0 }}
-                    type={"primary"} onClick={() => {
-                    props.confirm();
-                }}>Valider</Button>
-            </div>
-        </>);
-    }
+    const [forceReload, setForceReload] = useState<number>(0);
 
     const render_address = (t: string, _: any) => {
 
@@ -291,6 +162,10 @@ export default function X() {
     }
 
     const columns: ColumnsType<DataType> = [
+        // {
+        // 	title: 'id',
+        // 	dataIndex: 'id',
+        // },
         {
             title: 'Date de début',
             dataIndex: 'date_start',
@@ -298,7 +173,7 @@ export default function X() {
             render: (_, r) => {
                 return <div style={{ textAlign: "right" }}>{dayjs(r.date_start).format("DD/MM/YYYY HH:mm")}</div>
             },
-            filterDropdown: filter_dropdown,
+            // filterDropdown: filter_dropdown,
             sorter: (a, b) => dayjs(a.date_start).unix() - dayjs(b.date_start).unix(),
         },
         {
@@ -308,241 +183,332 @@ export default function X() {
             render: (_, r) => {
                 return <div style={{ textAlign: "right" }}>{dayjs(r.date_end).format("DD/MM/YYYY HH:mm")}</div>
             },
-            filterDropdown: filter_dropdown,
+            // filterDropdown: filter_dropdown,
             sorter: (a, b) => dayjs(a.date_end).unix() - dayjs(b.date_end).unix(),
         },
         {
             title: 'Dossier',
             dataIndex: 'folder_id',
             key: 'folder_id',
-            filterDropdown: filter_dropdown,
             sorter: (a, b) => a.folder_id.localeCompare(b.folder_id),
+            filters: unique(allMissions.map((x) => ({ text: x.folder_id, value: x.folder_id }))),
+            onFilter: (value, record) => record.folder_id.indexOf(value as string) === 0,
         },
         {
             title: 'Type de véhicule',
             dataIndex: 'vehicle_type',
             key: 'vehicle_type',
             render: (t) => <>{WAYNIUM_vehiculetype_id_to_string(t)}</>,
-            filterDropdown: filter_dropdown,
+            sorter: (a, b) => a.folder_id.localeCompare(b.folder_id),
+            filters: unique(allMissions.map((x) => ({ text: WAYNIUM_vehiculetype_id_to_string(x.vehicle_type), value: x.vehicle_type }))),
+            onFilter: (value, record) => record.vehicle_type.indexOf(value as string) === 0,
         },
         {
             title: 'Type de service',
             dataIndex: 'service_type',
             render: (t) => <>{WAYNIUM_servicetype_id_to_string(t)}</>,
-            filterDropdown: (props) => <FilterDropdownCheckboxes
-                choices={allServices}
-                type={"services"}
-                setSelectedKeys={props.setSelectedKeys}
-                confirm={props.confirm}
-            />
+            sorter: (a, b) => a.folder_id.localeCompare(b.folder_id),
+            filters: unique(allMissions.map((x) => ({ text: WAYNIUM_servicetype_id_to_string(x.service_type), value: x.service_type }))),
+            onFilter: (value, record) => record.service_type.indexOf(value as string) === 0,
         },
         {
             title: 'Client',
             dataIndex: 'client',
-            filterDropdown: (props) => <FilterDropdownCheckboxes
-                choices={allClients}
-                type={"clients"}
-                setSelectedKeys={props.setSelectedKeys}
-                confirm={props.confirm}
-            />
-        },
-        {
-            title: 'Partenaire',
-            dataIndex: 'partner_id',
-            render: (t) => {
-
-                const [partner_id, partner_name] = t.split('|');
-
-                if (partner_id == "null") {
-                    return <Text type={"danger"}>Aucun !</Text>
-                }
-                return <>{t.split('|')[1]}</>
-            },
-            filterDropdown: (props) => <FilterDropdownCheckboxes
-                choices={allPartners}
-                type={"partenaires"}
-                setSelectedKeys={props.setSelectedKeys}
-                confirm={props.confirm}
-            />
+            render: (t) => <>{t}</>,
+            sorter: (a, b) => a.folder_id.localeCompare(b.folder_id),
+            filters: unique(allMissions.map((x) => ({ text: x.client, value: x.client }))),
+            onFilter: (value, record) => record.client.indexOf(value as string) === 0,
         },
         {
             title: 'Chauffeur',
             dataIndex: 'chauffeur_name',
+            // filterDropdown: (props) => <FilterDropdownCheckboxes
+            // 	choices={allChauffeurs.map((x) => ({ text: x.text, value: x.value }))}
+            // 	type={"chauffeurs"}
+            // 	setSelectedKeys={props.setSelectedKeys}
+            // 	confirm={props.confirm}
+            // />,
+            render: (t) => {
+                return t?.split("|")[1] || "Aucun"
+            },
+            sorter: (a, b) => a.chauffeur_name.localeCompare(b.chauffeur_name),
+            filters: unique(allMissions.map((x) => ({ text: x.chauffeur_name, value: x.chauffeur_name }))),
+            onFilter: (value, record) => record.chauffeur_name.indexOf(value as string) === 0,
         },
         {
             title: 'Adresse de prise en charge',
             dataIndex: 'pickup_address',
             render: render_address,
+            sorter: (a, b) => a.pickup_address.localeCompare(b.pickup_address),
         },
         {
             title: 'Adresse de dépose',
             dataIndex: 'dropoff_address',
             render: render_address,
+            sorter: (a, b) => a.dropoff_address.localeCompare(b.dropoff_address),
         },
         {
-            title: 'Prix d\'achat',
+            title: 'Prix d\'achat TTC',
             dataIndex: 'buying_price',
             sorter: (a, b) => {
                 return parseFloat(a.buying_price) - parseFloat(b.buying_price);
             }
         },
         {
-            title: 'Prix de vente',
+            title: 'Prix de vente TTC',
             dataIndex: 'selling_price',
+            sorter: (a, b) => {
+                return parseFloat(a.selling_price) - parseFloat(b.selling_price);
+            }
         },
         {
             title: 'Profit',
             dataIndex: 'profit',
+            render: (t, obj) => {
+
+                const p_achat = parseFloat(obj.buying_price);
+                const p_vente = parseFloat(obj.selling_price);
+
+                const percent = (p_vente - p_achat) / p_vente * 100;
+                return <Text>{percent.toFixed(2)} %</Text>
+            },
+            sorter: (a, b) => {
+                return parseFloat(a.profit) - parseFloat(b.profit);
+            }
         },
+        {
+            title: 'Statut',
+            dataIndex: 'status',
+            render: (t) => {
+                return <>{WAYNIUM_statut_id_to_string(t)}</>
+            },
+            sorter: (a, b) => a.status.localeCompare(b.status),
+            filters: unique(allMissions.map((x) => ({ text: WAYNIUM_statut_id_to_string(x.status), value: x.status }))),
+            onFilter: (value, record) => record.status.indexOf(value as string) === 0,
+        }
+        // ,
         // {
-        //     title: 'Statut',
-        //     dataIndex: 'status',
-        //     render: (t) => {
-        //         return <>{WAYNIUM_statut_id_to_string(t)}</>
-        //     }
-        // },
-        // {
-        //     title: 'Envoyé au fournisseur',
-        //     dataIndex: 'sent_to_supplier',
+        // 	title: 'Envoyé au fournisseur',
+        // 	dataIndex: 'sent_to_supplier',
         // }
     ];
 
-    const { RangePicker } = DatePicker;
-    const { Text, Title } = Typography;
-    const dateFormat = 'YYYY/MM/DD';
 
-    const [selectedRows, setSelectedRows] = useState<DataType[]>([]);
-    const [drawerVisible, setDrawerVisible] = useState(false);
+    useEffect(() => {
+
+        setLoading(true);
+
+        fetch("/api/contractors/transmitted", {
+            method: "POST",
+            body: JSON.stringify({
+                start: interval_from,
+                end: interval_to,
+            }),
+        }).then((res) => res.json()).then((res) => {
+            setAllPartnersX(res);
+
+            if (selectedPartner == "") {
+                setLoading(false);
+            }
+        });
+
+        if (selectedPartner != "") {
+            fetch("/api/missions/transmitted", {
+                method: "POST",
+                body: JSON.stringify({
+                    start: interval_from,
+                    end: interval_to,
+                    partner: selectedPartner,
+                }),
+            })
+                .then((res) => {
+                    console.log({ res })
+                    return res.json()
+                })
+                .then((res) => {
+                    setAllMissions(res.jobs);
+                    setLoading(false);
+                });
+        }
+
+    }, [interval_from, interval_to, selectedPartner, forceReload]);
+
+    const filterOption = (input: string, option?: { label: string; value: string }) => (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
+
+    const [api, contextHolder] = notification.useNotification();
+    const openNotification = (placement: NotificationPlacement) => {
+        api.info({
+            message: `Notification ${placement}`,
+            description: "Done !",
+            placement,
+        });
+    };
+
+    const [drawerVisible, setDrawerVisible] = useState<boolean>(false);
     const [contractorInvoiceNum, setContractorInvoiceNum] = useState<string>("");
     const [sageInvoiceNum, setSageInvoiceNum] = useState<string>("");
+    const [invoicePrice, setInvoicePrice] = useState<string>("");
+    const [invoiceDate, setInvoiceDate] = useState<string>("");
 
     return (<>
 
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: 5 }}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 5 }}>
 
-                <RangePicker
-                    defaultValue={[dayjs(interval_from), dayjs(interval_to)]}
-                    format={dateFormat}
-                    onChange={(dates, dateStrings) => {
-                        setInterval_from(dateStrings[0]);
-                        setInterval_to(dateStrings[1]);
-                        setTimeout(() => {
-                            refresh();
-                        }, 100);
-                    }}
-                />
-
-                <div style={{width: 100}}></div>
-
-                {
-                    selectedRows.length == 0 &&
-                    <Text>
-                        <InfoCircleOutlined /> Sélectionnez des missions pour les attribuer à une facture
-                    </Text>
-                }
-
-                {
-                    selectedRows.length > 0 &&
-                    <Button
-                        type="primary"
-                        shape="round"
-                        icon={<DownloadOutlined />}
-                        size={"middle"}
-                        onClick={() => {
-                            setDrawerVisible(true);
-                        }}
-                    >
-                        Attribuer à une facture
-                    </Button>
-                }
-
-            </div>
-
-            <Table
-                columns={columns}
-                rowKey="id"
-                {...tableProps}
-
-                rowSelection={{
-                    type: "checkbox",
-                    onChange: (selectedRowKeys, selectedRows) => {
-                        setSelectedRows(selectedRows);
-                    }
+            <RangePicker
+                defaultValue={[dayjs(interval_from), dayjs(interval_to)]}
+                format={dateFormat}
+                onChange={(dates, dateStrings) => {
+                    setInterval_from(dateStrings[0]);
+                    setInterval_to(dateStrings[1]);
                 }}
             />
 
-            <Drawer
-                title="Attribuer à une facture"
-                placement="right"
-                closable={true}
-                onClose={() => {
-                    setDrawerVisible(false);
+            <div style={{ width: 15 }}></div>
+
+            <Select
+                showSearch
+                placeholder={"Choisissez un partenaire (" + allPartnersX.length + ")"}
+                onChange={(e) => { console.log({ e }); setSelectedPartner(e); }}
+                options={allPartnersX.map(x => ({ value: x.id, label: x.name }))}
+                filterOption={filterOption}
+            />
+
+            <div style={{ width: 15 }}></div>
+
+            <Button
+                disabled={selected.length === 0}
+                type={"primary"}
+                onClick={() => {
+                    setDrawerVisible(true);
                 }}
-                visible={drawerVisible}
             >
-                <Card>
-                    <Text>
-                        <InfoCircleOutlined /> Entrez un numéro de facture pour attribuer les missions sélectionnées à cette facture.
-                    </Text>
-                </Card>
+                Attribuer à une facture
+            </Button>
 
-                <div style={{height: 20}}></div>
+        </div>
 
-                <Card
-                    bordered={false}
-                    title={"Informations de facturation"}
-                    actions={[
-                        <Button
-                            key="submit"
-                            type={"primary"}
-                            onClick={() => {
-                                fetch("/api/assignMissionToInvoice", {
-                                    method: "POST",
-                                    body: JSON.stringify({
-                                        missionIds: selectedRows.map((x) => x.id),
-                                        invoice: contractorInvoiceNum,
-                                        sage: sageInvoiceNum,
-                                    })
-                                }).then(() => {
-                                    message.success("Attribution réussie !");
-                                    setDrawerVisible(false);
-                                    refresh();
+
+        <Table
+            pagination={{ pageSize: 200, hideOnSinglePage: true }}
+            loading={loading}
+            columns={columns}
+            rowKey="id"
+            dataSource={allMissions}
+            rowSelection={{
+                type: "checkbox",
+                onChange: (selectedRowKeys, selectedRows) => {
+                    setSelected(selectedRows);
+                }
+            }}
+            locale={{
+                filterConfirm: "OK",
+            }}
+        />
+
+        <Drawer
+            title="Attribuer à une facture"
+            placement="right"
+            closable={true}
+            onClose={() => {
+                setDrawerVisible(false);
+            }}
+            visible={drawerVisible}
+        >
+            <Card>
+                <Text>
+                    Entrez un numéro de facture pour attribuer les missions sélectionnées à cette facture.
+                </Text>
+            </Card>
+
+            <div style={{ height: 20 }}></div>
+
+            <Card
+                bordered={false}
+                title={"Informations de facturation"}
+                actions={[
+                    <Button
+                        key="submit"
+                        type={"primary"}
+                        onClick={() => {
+                            fetch("/api/assignMissionToInvoice", {
+                                method: "POST",
+                                body: JSON.stringify({
+                                    // @ts-ignore
+                                    missionIds: selected.map((x) => x.id),
+                                    invoice: contractorInvoiceNum,
+                                    sage: sageInvoiceNum,
                                 })
-                            }}
-                            >
-                            Attribuer {selectedRows.length} missions
-                        </Button>
-                    ]}
-                >
-                    <Text>
-                        Numéro de facture
-                    </Text>
-                    <Input
-                        title={"Numéro de facture du sous-traitant"}
-                        value={contractorInvoiceNum}
-                        onChange={(e) => {
-                            setContractorInvoiceNum(e.target.value);
+                            }).then(() => {
+                                message.success("Attribution réussie !");
+                                setDrawerVisible(false);
+                                setForceReload(forceReload + 1);
+                            })
                         }}
-                    />
+                    >
+                        Attribuer {selected.length} missions
+                    </Button>
+                ]}
+            >
+                <Text>
+                    Numéro de facture
+                </Text>
+                <Input
+                    title={"Numéro de facture du sous-traitant"}
+                    value={contractorInvoiceNum}
+                    onChange={(e) => {
+                        setContractorInvoiceNum(e.target.value);
+                    }}
+                />
 
-                    <div style={{height: 20}}></div>
+                <div style={{ height: 20 }}></div>
 
-                    <Text>
-                        Numéro SAGE
-                    </Text>
-                    <Input
-                        title={"Numéro SAGE"}
-                        value={sageInvoiceNum}
-                        onChange={(e) => {
-                            setSageInvoiceNum(e.target.value);
-                        }}
-                    />
-                </Card>
+                <Text>
+                    Numéro SAGE
+                </Text>
+                <Input
+                    title={"Numéro SAGE"}
+                    value={sageInvoiceNum}
+                    onChange={(e) => {
+                        setSageInvoiceNum(e.target.value);
+                    }}
+                />
 
-            </Drawer>
+                <div style={{ height: 20 }}></div>
 
-            Rows selected: {selectedRows.length}
+                <Text>
+                    Montant facture
+                </Text>
+                <Paragraph type={"secondary"}>
+                    { /* @ts-ignore */ }
+                    Somme prix achat = {selected.map((x) => parseFloat(x.buying_price)).reduce((a, b) => a + b, 0).toFixed(2)} €
+                </Paragraph>
+                <Input
+                    title={"Montant facture"}
+                    value={invoicePrice}
+                    onChange={(e) => {
+                        setInvoicePrice(e.target.value);
+                    }}
+                />
 
-        </>
+                <div style={{ height: 20 }}></div>
+
+                <Text>
+                    Date de validation
+                </Text><br />
+                <DatePicker
+                    defaultValue={dayjs()}
+                    format={dateFormat}
+                    onChange={(date, dateString) => {
+                        setInvoiceDate(dateString);
+                    }}
+                    style={{ width: "100%" }}
+                />
+
+            </Card>
+
+        </Drawer>
+
+
+    </>
     );
 };

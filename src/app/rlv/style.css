@@ -1,3 +1,12 @@
+* {
+    font-family: Arial;
+    font-size: small;
+}
+
+.nextjs-toast-errors-parent {
+    display: none !important;
+}
+
 @media screen {
     table, th, td {
         border: 1px solid rgba(0, 0, 0, 0.27);
