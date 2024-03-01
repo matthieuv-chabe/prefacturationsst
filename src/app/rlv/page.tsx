@@ -93,7 +93,7 @@ const X = async (props: { onrecv: (data: any) => void }) => {
                 // alignItems: isForDemo ? 'center' : 'left',
                 // flexDirection: 'column',
                 // boxShadow: isForDemo ? '5px' : '0',
-                overflow: 'auto'
+                overflow: 'visible'
             }}
         >
 
