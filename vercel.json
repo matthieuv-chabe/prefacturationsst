@@ -1,0 +1,12 @@
+{
+    "builds": [
+      {
+        "src": "app/**/*",
+        "use": "@vercel/next",
+        "config": {
+          "dynamic": "force-dynamic"
+        }
+      }
+    ]
+  }
+  
