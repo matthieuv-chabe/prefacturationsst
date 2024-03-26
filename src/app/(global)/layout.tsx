@@ -86,6 +86,16 @@ export default function Layout({children}: { children: any }) {
 		})
 	}, [dark, token]);
 
+	return (<ConfigProvider locale={{locale: "fr"}} csp={{nonce: "test"}} >
+	<ProConfigProvider dark={dark}>
+		<GlobalContext.Provider value={globalcontext}>
+			<XLayout pca={pca} dark={dark} onSetDark={(d) => setDark(d)}>
+				{children}
+			</XLayout>
+		</GlobalContext.Provider>
+	</ProConfigProvider>
+</ConfigProvider>)
+
 	return (
 		<>
 			<MsalProvider instance={pca}>

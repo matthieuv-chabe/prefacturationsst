@@ -26,7 +26,8 @@ export default function GlobalLayout(props: {
 	const {useToken} = theme;
 	const {token} = useToken();
 
-	const {switchDark} = useContext(GlobalContext)!;
+	// const {switchDark} = useContext(GlobalContext)!;
+	const switchDark = () => {}
 
 	return (<>
 			<ProLayout

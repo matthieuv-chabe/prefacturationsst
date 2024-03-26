@@ -367,6 +367,10 @@ export default function X() {
                 filterOption={filterOption}
             />
 
+            <div style={{ width: 15 }}></div>
+
+            {selected != null && selected.length != 0 && <>Total: {selected.length} missions</>}
+
         </div>
 
 
