@@ -45,11 +45,11 @@ function useURLState<T>(
 
 	useEffect(() => {
 		const serializedValue = JSON.stringify(value);
-		const searchParams = new URLSearchParams(window.location.search);
+		const searchParams = new URLSearchParams(window && window.location.search);
 		searchParams.set(paramName, serializedValue);
 
-		const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
-		window.history.replaceState({ path: newUrl }, '', newUrl);
+		const newUrl = `${window?.location.pathname}?${searchParams.toString()}`;
+		window?.history.replaceState({ path: newUrl }, '', newUrl);
 
 		const handlePopstate = (event: PopStateEvent) => {
 			const updatedValueFromURL = getInitialValueFromURL();
@@ -58,10 +58,10 @@ function useURLState<T>(
 			}
 		};
 
-		window.addEventListener('popstate', handlePopstate);
+		window?.addEventListener('popstate', handlePopstate);
 
 		return () => {
-			window.removeEventListener('popstate', handlePopstate);
+			window?.removeEventListener('popstate', handlePopstate);
 		};
 	}, [value, paramName]);
 
@@ -386,7 +386,7 @@ export default function X() {
 					//data.missions = [selected[0]]
 					data.missions = []
 
-					const target = window.open("/rlv?p=" + btoa(JSON.stringify(data)), "_blank");
+					const target = window?.open("/rlv?p=" + btoa(JSON.stringify(data)), "_blank");
 					if (!target) {
 						alert("Veuillez autoriser les popups pour ce site");
 					}
