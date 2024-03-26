@@ -4,6 +4,14 @@ import { Salesforce } from "@/core/salesforce";
 import puppeteer from "puppeteer";
 import { mailService } from "@/core/MailService";
 
+import mailchimpTx from "@mailchimp/mailchimp_transactional"
+
+const mc = mailchimpTx("md-4NJETXRIdOzY8UlTbTqUKg")
+import * as fs from "fs"
+
+// @ts-ignore
+import {encode, decode} from 'uint8-to-base64';
+
 async function printPDF(url: string, path: string, missions: any[]) {
 
     const browser = await puppeteer.launch({ headless: "new" });
@@ -94,21 +102,43 @@ export async function POST(request: NextRequest) {
     // console.log(JSON.stringify(body))
     // console.log({contractor, endMonth})
 
+    await mc.messages.send({
+        message: {
+            subject: `Relevé de missions ${contractor}`,
+            to: [
+                {
+                    email: "matthieu.vancayzeele@chabe.com",
+                    type: "to"
+                },
+                {
+                    email: "sst_a_envoyer@chabe.fr",
+                    type: "to"
+                }
+            ],
+            from_email: "prefac_sst@sendmail_tmp.chabe.com",
+            attachments: [
+                {
+                    type: "application/pdf",
+                    name: `releve_${contractor}_${endMonth}.pdf`,
+                    content: encode(fs.readFileSync("public/rlv.pdf"))
+                }
+            ]
+        }
+    })
 
-
-    mailService.sendMail(
-        "factures-artisans@chabe.fr",
-        "sst_a_envoyer@chabe.fr",
-        //"matthieu.vancayzeele@chabe.fr",
-        "Relevé de missions Chabé",
-        [
-            { path: "public/rlv.pdf", filename: `releve_${contractor}_${endMonth}.pdf`, contentType: "application/pdf" }
-        ],
-        "Bonjour,\n\n" +
-        "Veuillez trouver ci-joint le relevé de missions Chabé.\n\n" +
-        "Cordialement,\n" +
-        "L'équipe Chabé"
-    );
+    // mailService.sendMail(
+    //     "factures-artisans@chabe.fr",
+    //     "sst_a_envoyer@chabe.fr",
+    //     //"matthieu.vancayzeele@chabe.fr",
+    //     "Relevé de missions Chabé",
+    //     [
+    //         { path: "public/rlv.pdf", filename: `releve_${contractor}_${endMonth}.pdf`, contentType: "application/pdf" }
+    //     ],
+    //     "Bonjour,\n\n" +
+    //     "Veuillez trouver ci-joint le relevé de missions Chabé.\n\n" +
+    //     "Cordialement,\n" +
+    //     "L'équipe Chabé"
+    // );
 
     const m = JSON.parse(body.missions) as { missions: any[] };
 
