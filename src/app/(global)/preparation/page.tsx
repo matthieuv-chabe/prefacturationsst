@@ -27,7 +27,7 @@ function useURLState<T>(
 	initialValue: T
 ): [T, SetValue<T>] {
 	const getInitialValueFromURL = (): T | null => {
-		const searchParams = new URLSearchParams(window.location.search);
+		const searchParams = new URLSearchParams(window && window.location.search);
 		const valueFromURL = searchParams.get(paramName);
 		if (valueFromURL !== null) {
 			try {
