@@ -22,6 +22,8 @@ import {
 } from "@/business/waynium";
 import { NotificationPlacement } from 'antd/es/notification/interface';
 
+import xlsx from "json-as-xlsx";
+
 type SetValue<T> = (newValue: T | ((prevValue: T) => T)) => void;
 
 function useURLState<T>(
@@ -405,6 +407,35 @@ export default function X() {
             }}
         />
 
+<Button
+    onClick={() => {
+        const data = [{
+            sheet: "Data",
+            columns: [
+                { label: "Date de début", value: (row: any) => dayjs(row.date_start).format("DD/MM/YYYY HH:mm") },
+                { label: "Heure de fin", value: (row: any) => dayjs(row.date_end).format("HH:mm") },
+                { label: "ID Mission", value: (row: DataType) => (row.folder_id + "-" + row.id) },
+                { label: "Type de véhicule", value: (row: DataType) => WAYNIUM_vehiculetype_id_to_string(row.vehicle_type) },
+                { label: "Type de service", value: (row: DataType) => WAYNIUM_servicetype_id_to_string(row.service_type) },
+                { label: "Client", value: "client" },
+                { label: "Chauffeur", value: "chauffeur_name" },
+                { label: "Adresse de prise en charge", value: "pickup_address" },
+                { label: "Adresse de dépose", value: "dropoff_address" },
+                { label: "Prix d'achat TTC", value: "buying_price" },
+                { label: "Prix de vente TTC", value: "selling_price" },
+                { label: "Profit", value: (row: DataType) => ((parseFloat(row.selling_price) - parseFloat(row.buying_price)) / parseFloat(row.selling_price) * 100).toFixed(2) + "%" },
+                { label: "Statut", value: (row: DataType) => WAYNIUM_statut_id_to_string(row.status) },
+            ],
+            content: allMissions,
+        }];
+
+        // @ts-ignore
+        xlsx(data, {
+            fileName: "missions " + allPartnersX.find(e => e.id == selectedPartner).name
+        })
+    }}
+>Download Excel</Button>
+
         <Drawer
             title="Attribuer à une facture"
             placement="right"
@@ -505,6 +536,7 @@ export default function X() {
                 />
 
             </Card>
+
 
         </Drawer>
 
